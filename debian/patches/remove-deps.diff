@@ -5,11 +5,12 @@ Author: Philipp Huebner <debalance@debian.org>
 
 --- a/rebar.config
 +++ b/rebar.config
-@@ -28,7 +28,6 @@
- {port_specs, [{"priv/lib/fxml.so", ["c_src/fxml.c"]},
-               {"priv/lib/fxml_stream.so", ["c_src/fxml_stream.c"]}]}.
+@@ -24,8 +24,6 @@
+ 	    {i, "../fast_xml/include"},
+ 	    {i, "deps/fast_xml/include"}]}.
  
--{deps, [{p1_utils, ".*", {git, "https://github.com/processone/p1_utils", {tag, "1.0.6"}}}]}.
+-{deps, [{fast_xml, ".*", {git, "https://github.com/processone/fast_xml", {tag, "1.1.19"}}},
+-	{stringprep, ".*", {git, "https://github.com/processone/stringprep", {tag, "1.0.7"}}}]}.
  
- {clean_files, ["c_src/fxml.gcda", "c_src/fxml.gcno", "c_src/fxml_stream.gcda", "c_src/fxml_stream.gcno"]}.
- 
+ {cover_enabled, true}.
+ {cover_export_enabled, true}.
