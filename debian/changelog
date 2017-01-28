@@ -1,0 +1,5 @@
+erlang-p1-xmpp (0.2014.02.28-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Mathias Ertl <mati@jabber.at>  Sat, 28 Jan 2017 18:49:08 +0100
