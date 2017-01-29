@@ -12,7 +12,7 @@ DESTDIR=$(CURDIR)/debian/erlang-p1-xml
 
 override_dh_auto_install:
 	dh_auto_install
-	for file in include/*.hrl priv/lib/*.so ; do \
+	for file in include/*.hrl ; do \
 	        fname=$$(basename $${file}) ; \
 	        subdir=$$(dirname $${file}) ; \
 	        if [ ! -f $(DESTDIR)/usr/lib/erlang/lib/p1_xmpp-$(DEB_VERSION_UPSTREAM)/$${subdir}/$${fname} ] ; then \
