@@ -1,16 +1,16 @@
-erlang-p1-xmpp (1.1.16-0.3) unstable; urgency=low
+erlang-p1-xmpp (1.1.6-0.3) unstable; urgency=low
 
   * Really (tm) install header files.
 
  -- Mathias Ertl <mati@jabber.at>  Sun, 29 Jan 2017 16:05:47 +0100
 
-erlang-p1-xmpp (1.1.16-0.2) unstable; urgency=low
+erlang-p1-xmpp (1.1.6-0.2) unstable; urgency=low
 
   * Also install header files.
 
  -- Mathias Ertl <mati@jabber.at>  Sun, 29 Jan 2017 14:30:16 +0100
 
-erlang-p1-xmpp (1.1.16-0.1) unstable; urgency=low
+erlang-p1-xmpp (1.1.6-0.1) unstable; urgency=low
 
   * Initial release.
 
