@@ -14,14 +14,6 @@
 
 -export_type([property/0, result/0, form/0]).
 
-enc_jid(J) -> jid:to_string(J).
-
-dec_jid(Val) ->
-    case jid:from_string(Val) of
-      error -> erlang:error(badarg);
-      J -> J
-    end.
-
 format_error({form_type_mismatch, Type}) ->
     <<"FORM_TYPE doesn't match '", Type/binary, "'">>;
 format_error({bad_var_value, Var, Type}) ->
@@ -74,17 +66,17 @@ decode(Fs, Acc) ->
 			{form_type_mismatch, <<"urn:xmpp:mam:1">>}})
     end.
 
-encode(Cfg) -> encode(Cfg, fun (Text) -> Text end).
+encode(Cfg) -> encode(Cfg, <<"en">>).
 
-encode(List, Translate) when is_list(List) ->
+encode(List, Lang) when is_list(List) ->
     Fs = [case Opt of
-	    {with, Val} -> [encode_with(Val, Translate)];
+	    {with, Val} -> [encode_with(Val, Lang)];
 	    {with, _, _} -> erlang:error({badarg, Opt});
-	    {start, Val} -> [encode_start(Val, Translate)];
+	    {start, Val} -> [encode_start(Val, Lang)];
 	    {start, _, _} -> erlang:error({badarg, Opt});
-	    {'end', Val} -> [encode_end(Val, Translate)];
+	    {'end', Val} -> [encode_end(Val, Lang)];
 	    {'end', _, _} -> erlang:error({badarg, Opt});
-	    {withtext, Val} -> [encode_withtext(Val, Translate)];
+	    {withtext, Val} -> [encode_withtext(Val, Lang)];
 	    {withtext, _, _} -> erlang:error({badarg, Opt});
 	    #xdata_field{} -> [Opt];
 	    _ -> []
@@ -97,7 +89,7 @@ encode(List, Translate) when is_list(List) ->
 decode([#xdata_field{var = <<"with">>, values = [Value]}
 	| Fs],
        Acc, Required) ->
-    try dec_jid(Value) of
+    try jid:decode(Value) of
       Result -> decode(Fs, [{with, Result} | Acc], Required)
     catch
       _:_ ->
@@ -187,17 +179,17 @@ decode([#xdata_field{var = Var} | Fs], Acc, Required) ->
     end;
 decode([], Acc, []) -> Acc.
 
-encode_with(Value, Translate) ->
+encode_with(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
-	       Value -> [enc_jid(Value)]
+	       Value -> [jid:encode(Value)]
 	     end,
     Opts = [],
     #xdata_field{var = <<"with">>, values = Values,
 		 required = false, type = 'jid-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"User JID">>)}.
+		 desc = <<>>, label = xmpp_tr:tr(Lang, <<"User JID">>)}.
 
-encode_start(Value, Translate) ->
+encode_start(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [Value]
@@ -206,9 +198,9 @@ encode_start(Value, Translate) ->
     #xdata_field{var = <<"start">>, values = Values,
 		 required = false, type = 'text-single', options = Opts,
 		 desc = <<>>,
-		 label = Translate(<<"Search from the date">>)}.
+		 label = xmpp_tr:tr(Lang, <<"Search from the date">>)}.
 
-encode_end(Value, Translate) ->
+encode_end(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [Value]
@@ -217,9 +209,9 @@ encode_end(Value, Translate) ->
     #xdata_field{var = <<"end">>, values = Values,
 		 required = false, type = 'text-single', options = Opts,
 		 desc = <<>>,
-		 label = Translate(<<"Search until the date">>)}.
+		 label = xmpp_tr:tr(Lang, <<"Search until the date">>)}.
 
-encode_withtext(Value, Translate) ->
+encode_withtext(Value, Lang) ->
     Values = case Value of
 	       <<>> -> [];
 	       Value -> [Value]
@@ -227,4 +219,5 @@ encode_withtext(Value, Translate) ->
     Opts = [],
     #xdata_field{var = <<"withtext">>, values = Values,
 		 required = false, type = 'text-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"Search the text">>)}.
+		 desc = <<>>,
+		 label = xmpp_tr:tr(Lang, <<"Search the text">>)}.

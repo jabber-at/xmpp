@@ -22,14 +22,6 @@ dec_bool(<<"false">>) -> false.
 enc_bool(true) -> <<"1">>;
 enc_bool(false) -> <<"0">>.
 
-enc_jid(J) -> jid:to_string(J).
-
-dec_jid(Val) ->
-    case jid:from_string(Val) of
-      error -> erlang:error(badarg);
-      J -> J
-    end.
-
 format_error({form_type_mismatch, Type}) ->
     <<"FORM_TYPE doesn't match '", Type/binary, "'">>;
 format_error({bad_var_value, Var, Type}) ->
@@ -91,18 +83,18 @@ decode(Fs, Acc) ->
 			   "uthorization">>}})
     end.
 
-encode(Cfg) -> encode(Cfg, fun (Text) -> Text end).
+encode(Cfg) -> encode(Cfg, <<"en">>).
 
-encode(List, Translate) when is_list(List) ->
+encode(List, Lang) when is_list(List) ->
     Fs = [case Opt of
-	    {allow, Val} -> [encode_allow(Val, Translate)];
+	    {allow, Val} -> [encode_allow(Val, Lang)];
 	    {allow, _, _} -> erlang:error({badarg, Opt});
-	    {node, Val} -> [encode_node(Val, Translate)];
+	    {node, Val} -> [encode_node(Val, Lang)];
 	    {node, _, _} -> erlang:error({badarg, Opt});
 	    {subscriber_jid, Val} ->
-		[encode_subscriber_jid(Val, Translate)];
+		[encode_subscriber_jid(Val, Lang)];
 	    {subscriber_jid, _, _} -> erlang:error({badarg, Opt});
-	    {subid, Val} -> [encode_subid(Val, Translate)];
+	    {subid, Val} -> [encode_subid(Val, Lang)];
 	    {subid, _, _} -> erlang:error({badarg, Opt});
 	    #xdata_field{} -> [Opt];
 	    _ -> []
@@ -179,7 +171,7 @@ decode([#xdata_field{var = <<"pubsub#subscriber_jid">>,
 		     values = [Value]}
 	| Fs],
        Acc, Required) ->
-    try dec_jid(Value) of
+    try jid:decode(Value) of
       Result ->
 	  decode(Fs, [{subscriber_jid, Result} | Acc],
 		 lists:delete(<<"pubsub#subscriber_jid">>, Required))
@@ -249,7 +241,7 @@ decode([], _, [Var | _]) ->
 		     "uthorization">>}});
 decode([], Acc, []) -> Acc.
 
-encode_allow(Value, Translate) ->
+encode_allow(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [enc_bool(Value)]
@@ -259,10 +251,11 @@ encode_allow(Value, Translate) ->
 		 required = false, type = boolean, options = Opts,
 		 desc = <<>>,
 		 label =
-		     Translate(<<"Allow this Jabber ID to subscribe to "
-				 "this pubsub node?">>)}.
+		     xmpp_tr:tr(Lang,
+				<<"Allow this Jabber ID to subscribe to "
+				  "this pubsub node?">>)}.
 
-encode_node(Value, Translate) ->
+encode_node(Value, Lang) ->
     Values = case Value of
 	       <<>> -> [];
 	       Value -> [Value]
@@ -270,20 +263,20 @@ encode_node(Value, Translate) ->
     Opts = [],
     #xdata_field{var = <<"pubsub#node">>, values = Values,
 		 required = false, type = 'text-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"Node ID">>)}.
+		 desc = <<>>, label = xmpp_tr:tr(Lang, <<"Node ID">>)}.
 
-encode_subscriber_jid(Value, Translate) ->
+encode_subscriber_jid(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
-	       Value -> [enc_jid(Value)]
+	       Value -> [jid:encode(Value)]
 	     end,
     Opts = [],
     #xdata_field{var = <<"pubsub#subscriber_jid">>,
 		 values = Values, required = false, type = 'jid-single',
 		 options = Opts, desc = <<>>,
-		 label = Translate(<<"Subscriber Address">>)}.
+		 label = xmpp_tr:tr(Lang, <<"Subscriber Address">>)}.
 
-encode_subid(Value, Translate) ->
+encode_subid(Value, Lang) ->
     Values = case Value of
 	       <<>> -> [];
 	       Value -> [Value]
@@ -293,5 +286,6 @@ encode_subid(Value, Translate) ->
 		 required = false, type = 'text-single', options = Opts,
 		 desc = <<>>,
 		 label =
-		     Translate(<<"The subscription identifier associated "
-				 "with the subscription request">>)}.
+		     xmpp_tr:tr(Lang,
+				<<"The subscription identifier associated "
+				  "with the subscription request">>)}.

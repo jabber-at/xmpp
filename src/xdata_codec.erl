@@ -28,8 +28,7 @@
 -export([compile/1, compile/2]).
 -export([dec_int/1, dec_int/3, dec_enum/2, dec_bool/1, not_empty/1,
 	 dec_enum_int/2, dec_enum_int/4, enc_int/1, enc_enum/1,
-	 enc_bool/1, enc_enum_int/1, format_error/1, io_format_error/1,
-	 enc_jid/1, dec_jid/1]).
+	 enc_bool/1, enc_enum_int/1, format_error/1, io_format_error/1]).
 -include("xmpp.hrl").
 
 -type mfargs() :: {atom(), atom(), list()} | {atom(), list()}.
@@ -166,14 +165,6 @@ dec_bool(<<"false">>) -> false.
 enc_bool(true) -> <<"1">>;
 enc_bool(false) -> <<"0">>.
 
-enc_jid(J) -> jid:to_string(J).
-
-dec_jid(Val) ->
-    case jid:from_string(Val) of
-	error -> erlang:error(badarg);
-	J -> J
-    end.
-
 not_empty(<<_, _/binary>> = Val) ->
     Val.
 
@@ -255,8 +246,6 @@ mk_aux_funs() ->
 				{not_empty, 1} -> true;
 				{dec_bool, 1} -> true;
 				{enc_bool, 1} -> true;
-				{enc_jid, 1} -> true;
-				{dec_jid, 1} -> true;
 				_ -> false
 			    end
 		    end, AbsCode),
@@ -365,19 +354,19 @@ mk_top_encoder(Fs, State) ->
 		  fun(#xdata_field{var = Var, type = T}) when ?is_list_type(T) ->
 			  Field = var_to_rec_field(Var, State),
 			  io_lib:format(
-			    "{'~s', Val} -> ['encode_~s'(Val, default, Translate)];"
-			    "{'~s', Val, Opts} -> ['encode_~s'(Val, Opts, Translate)]",
+			    "{'~s', Val} -> ['encode_~s'(Val, default, Lang)];"
+			    "{'~s', Val, Opts} -> ['encode_~s'(Val, Opts, Lang)]",
 			    [Field, Field, Field, Field]);
 		     (#xdata_field{var = Var}) ->
 			  Field = var_to_rec_field(Var, State),
 			  io_lib:format(
-			    "{'~s', Val} -> ['encode_~s'(Val, Translate)];"
+			    "{'~s', Val} -> ['encode_~s'(Val, Lang)];"
 			    "{'~s', _, _} -> erlang:error({badarg, Opt})",
 			    [Field, Field, Field])
 		  end, Fs) ++ ["#xdata_field{} -> [Opt]; _ -> []"],
 		";"),
-    emit("encode(Cfg) -> encode(Cfg, fun(Text) -> Text end).~n"),
-    emit("encode(List, Translate) when is_list(List) ->"
+    emit("encode(Cfg) -> encode(Cfg, <<\"en\">>).~n"),
+    emit("encode(List, Lang) when is_list(List) ->"
 	 "  Fs = [case Opt of ~s end || Opt <- List],"
 	 "  FormType = #xdata_field{var = <<\"FORM_TYPE\">>, type = hidden,"
 	 "                          values = [~p]},"
@@ -456,15 +445,15 @@ mk_encoders(Fs, State) ->
 	      EncOpts = mk_encoded_options(F, State),
 	      FieldName = var_to_rec_field(Var, State),
 	      DescStr = if Desc == <<>> -> "<<>>";
-			   true -> io_lib:format("Translate(~p)", [Desc])
+			   true -> io_lib:format("xmpp_tr:tr(Lang, ~p)", [Desc])
 			end,
 	      LabelStr = if Label == <<>> -> "<<>>";
-			    true -> io_lib:format("Translate(~p)", [Label])
+			    true -> io_lib:format("xmpp_tr:tr(Lang, ~p)", [Label])
 			 end,
 	      if ?is_list_type(Type) ->
-		      emit("'encode_~s'(Value, Options, Translate) ->", [FieldName]);
+		      emit("'encode_~s'(Value, Options, Lang) ->", [FieldName]);
 		 true ->
-		      emit("'encode_~s'(Value, Translate) ->", [FieldName])
+		      emit("'encode_~s'(Value, Lang) ->", [FieldName])
 	      end,
 	      emit("  Values = ~s,"
 		   "  Opts = ~s,"
@@ -527,7 +516,7 @@ mk_encoded_options(#xdata_field{var = Var, type = Type,
 			 io_lib:format("#xdata_option{value = ~p}", [V]);
 		     _ ->
 			 io_lib:format(
-			   "#xdata_option{label = Translate(~p), value = ~p}",
+			   "#xdata_option{label = xmpp_tr:tr(Lang, ~p), value = ~p}",
 			   [L, V])
 		 end || #xdata_option{label = L, value = V} <- Options],
 		","),
@@ -536,7 +525,7 @@ mk_encoded_options(#xdata_field{var = Var, type = Type,
 	      "if Options == default ->"
 	      "   [~s];"
 	      "true ->"
-	      "   [#xdata_option{label = Translate(L), value = ~s}"
+	      "   [#xdata_option{label = xmpp_tr:tr(Lang, L), value = ~s}"
 	      "    || {L, V} <- Options]"
 	      "end",
 	      [EncOpts, EncFun]);
@@ -579,7 +568,7 @@ get_dec_fun(Var, Type, Options, State) ->
 		    undefined
 	    end;
 	false when Type == 'jid-multi'; Type == 'jid-single' ->
-	    {undefined, dec_jid, []};
+	    {jid, decode, []};
 	false when Type == boolean ->
 	    {undefined, dec_bool, []};
 	false ->
@@ -595,9 +584,7 @@ get_dec_fun(Var, Type, Options, State) ->
 	{Var, {dec_int, Args}} ->
 	    {undefined, dec_int, Args};
 	{Var, {dec_enum_int, Args}} ->
-	    {undefined, dec_enum_int, Args};
-	{Var, {dec_jid, []}} ->
-	    {undefined, dec_jid, []}
+	    {undefined, dec_enum_int, Args}
     end.
 
 get_enc_fun(Var, Type, Options, State) ->
@@ -610,12 +597,14 @@ get_enc_fun(Var, Type, Options, State) ->
 	    {undefined, enc_int, []};
 	{undefined, dec_enum_int, _} ->
 	    {undefined, enc_enum_int, []};
-	{undefined, dec_jid, _} ->
-	    {undefined, enc_jid, []};
+	{jid, decode, []} ->
+	    {jid, encode, []};
 	_ ->
 	    case lists:keyfind(Var, 1, State#state.enc_mfas) of
 		false ->
 		    undefined;
+		{Var, {jid, decode, []}} ->
+		    {jid, encode, []};
 		{Var, {M, F, A}} ->
 		    {M, F, A};
 		{Var, {enc_bool, []}} ->
@@ -625,9 +614,7 @@ get_enc_fun(Var, Type, Options, State) ->
 		{Var, {enc_int, _}} ->
 		    {undefined, enc_int, []};
 		{Var, {dec_enum_int, _}} ->
-		    {undefined, enc_enum_int, []};
-		{Var, {enc_jid, _}} ->
-		    {undefined, enc_jid, []}
+		    {undefined, enc_enum_int, []}
 	    end
     end.
 
@@ -651,7 +638,7 @@ get_typespec(#xdata_field{var = Var, type = Type, options = Options}, State) ->
 		    enum_spec(Args);
 		{undefined, dec_bool, _} ->
 		    "boolean()";
-		{undefined, dec_jid, _} ->
+		{jid, decode, _} ->
 		    "jid:jid()";
 		{undefined, dec_int, Args} ->
 		    int_spec(Args);

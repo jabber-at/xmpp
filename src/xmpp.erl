@@ -33,15 +33,16 @@
 -export([make_iq_result/1, make_iq_result/2, make_error/2,
 	 decode/1, decode/3, encode/1, encode/2,
 	 get_type/1, get_to/1, get_from/1, get_id/1,
-	 get_lang/1, get_error/1, get_els/1, get_ns/1, get_meta/1,
-	 set_type/2, set_to/2, set_from/2, set_id/2,
+	 get_lang/1, get_error/1, get_els/1, get_ns/1, get_meta/1, get_meta/2,
+	 get_meta/3, set_type/2, set_to/2, set_from/2, set_id/2,
 	 set_lang/2, set_error/2, set_els/2, set_from_to/3,
 	 set_meta/2, put_meta/3, update_meta/3, del_meta/2,
 	 format_error/1, io_format_error/1, is_stanza/1,
 	 set_subtag/2, get_subtag/2, remove_subtag/2, has_subtag/2,
 	 decode_els/1, decode_els/3, pp/1, get_name/1, get_text/1,
 	 get_text/2, mk_text/1, mk_text/2, is_known_tag/1, is_known_tag/2,
-	 append_subtags/2, prep_lang/1]).
+	 append_subtags/2, prep_lang/1, register_codec/1, unregister_codec/1,
+	 set_tr_callback/1]).
 
 %% XMPP errors
 -export([err_bad_request/0, err_bad_request/2,
@@ -99,6 +100,7 @@
 -include("xmpp.hrl").
 -type reason_text() :: binary() | {io:format(), list()}.
 -type lang() :: binary().
+-type decode_option() :: ignore_els.
 
 %%%===================================================================
 %%% Application callbacks
@@ -161,7 +163,7 @@ make_error(#xmlel{attrs = Attrs, children = Els} = El, Err) ->
     Attrs3 = lists:keystore(<<"type">>, 1, Attrs2, {<<"type">>, <<"error">>}),
     El#xmlel{attrs = Attrs3, children = Els ++ [encode(Err, ?NS_CLIENT)]}.
 
--spec get_id(iq() | message() | presence() | xmlel()) -> binary().
+-spec get_id(stanza() | xmlel()) -> binary().
 get_id(#iq{id = ID}) -> ID;
 get_id(#message{id = ID}) -> ID;
 get_id(#presence{id = ID}) -> ID;
@@ -176,30 +178,30 @@ get_type(#message{type = T}) -> T;
 get_type(#presence{type = T}) -> T;
 get_type(#xmlel{attrs = Attrs}) -> fxml:get_attr_s(<<"type">>, Attrs).
 
--spec get_lang(iq() | message() | presence() | xmlel()) -> binary().
+-spec get_lang(stanza() | xmlel()) -> binary().
 get_lang(#iq{lang = L}) -> L;
 get_lang(#message{lang = L}) -> L;
 get_lang(#presence{lang = L}) -> L;
 get_lang(#xmlel{attrs = Attrs}) -> fxml:get_attr_s(<<"xml:lang">>, Attrs).
 
--spec get_from(iq() | message() | presence()) -> undefined | jid:jid().
+-spec get_from(stanza()) -> undefined | jid:jid().
 get_from(#iq{from = J}) -> J;
 get_from(#message{from = J}) -> J;
 get_from(#presence{from = J}) -> J.
 
--spec get_to(iq() | message() | presence()) -> undefined | jid:jid().
+-spec get_to(stanza()) -> undefined | jid:jid().
 get_to(#iq{to = J}) -> J;
 get_to(#message{to = J}) -> J;
 get_to(#presence{to = J}) -> J.
 
--spec get_error(iq() | message() | presence()) -> undefined | stanza_error().
+-spec get_error(stanza()) -> undefined | stanza_error().
 get_error(Stanza) ->
-    case get_subtag(Stanza, #stanza_error{}) of
+    case get_subtag(Stanza, #stanza_error{type = cancel}) of
 	false -> undefined;
 	Error -> Error
     end.
 
--spec get_els(iq() | message() | presence()) -> [xmpp_element() | xmlel()];
+-spec get_els(stanza()) -> [xmpp_element() | xmlel()];
 	     (xmlel()) -> [xmlel()].
 get_els(#iq{sub_els = Els}) -> Els;
 get_els(#message{sub_els = Els}) -> Els;
@@ -227,16 +229,16 @@ set_lang(#iq{} = IQ, L) -> IQ#iq{lang = L};
 set_lang(#message{} = Msg, L) -> Msg#message{lang = L};
 set_lang(#presence{} = Pres, L) -> Pres#presence{lang = L}.
 
--spec set_from(iq(), jid:jid()) -> iq();
-	      (message(), jid:jid()) -> message();
-	      (presence(), jid:jid()) -> presence().
+-spec set_from(iq(), jid:jid() | undefined) -> iq();
+	      (message(), jid:jid() | undefined) -> message();
+	      (presence(), jid:jid() | undefined) -> presence().
 set_from(#iq{} = IQ, J) -> IQ#iq{from = J};
 set_from(#message{} = Msg, J) -> Msg#message{from = J};
 set_from(#presence{} = Pres, J) -> Pres#presence{from = J}.
 
--spec set_to(iq(), jid:jid()) -> iq();
-	    (message(), jid:jid()) -> message();
-	    (presence(), jid:jid()) -> presence().
+-spec set_to(iq(), jid:jid() | undefined) -> iq();
+	    (message(), jid:jid() | undefined) -> message();
+	    (presence(), jid:jid() | undefined) -> presence().
 set_to(#iq{} = IQ, J) -> IQ#iq{to = J};
 set_to(#message{} = Msg, J) -> Msg#message{to = J};
 set_to(#presence{} = Pres, J) -> Pres#presence{to = J}.
@@ -276,6 +278,16 @@ get_name(Pkt) ->
 get_meta(#iq{meta = M}) -> M;
 get_meta(#message{meta = M}) -> M;
 get_meta(#presence{meta = M}) -> M.
+
+-spec get_meta(stanza(), any()) -> any().
+get_meta(#iq{meta = M}, K) -> maps:get(K, M);
+get_meta(#message{meta = M}, K) -> maps:get(K, M);
+get_meta(#presence{meta = M}, K) -> maps:get(K, M).
+
+-spec get_meta(stanza(), any(), any()) -> any().
+get_meta(#iq{meta = M}, K, Def) -> maps:get(K, M, Def);
+get_meta(#message{meta = M}, K, Def) -> maps:get(K, M, Def);
+get_meta(#presence{meta = M}, K, Def) -> maps:get(K, M, Def).
 
 -spec set_meta(iq(), map()) -> iq();
 	      (message(), map()) -> message();
@@ -318,7 +330,7 @@ del_meta(#presence{meta = M} = Pres, K) ->
 decode(El) ->
     decode(El, ?NS_CLIENT, []).
 
--spec decode(xmlel() | xmpp_element(), binary(), [proplists:property()]) ->
+-spec decode(xmlel() | xmpp_element(), binary(), [decode_option()]) ->
 		    xmpp_element().
 decode(#xmlel{} = El, TopXMLNS, Opts) ->
     xmpp_codec:decode(El, TopXMLNS, Opts);
@@ -461,7 +473,9 @@ has_subtag([El|Els], TagName, XMLNS, TopXMLNS) ->
 has_subtag([], _, _, _) ->
     false.
 
--spec append_subtags(stanza(), [xmpp_element() | xmlel()]) -> stanza().
+-spec append_subtags(iq(), [xmpp_element() | xmlel()]) -> iq();
+		    (message(), [xmpp_element() | xmlel()]) -> message();
+		    (presence(), [xmpp_element() | xmlel()]) -> presence().
 append_subtags(Stanza, Tags) ->
     Els = get_els(Stanza),
     set_els(Stanza, Els ++ Tags).
@@ -488,6 +502,25 @@ mk_text(Text, Lang) ->
 -spec pp(any()) -> iodata().
 pp(Term) ->
     xmpp_codec:pp(Term).
+
+-spec register_codec(module()) -> ok.
+register_codec(Mod) ->
+    xmpp_codec:register_module(Mod).
+
+-spec unregister_codec(module()) -> ok.
+unregister_codec(Mod) ->
+    xmpp_codec:unregister_module(Mod).
+
+-spec set_tr_callback({module(), atom()} | undefined) -> ok.
+set_tr_callback(Callback) ->
+    Forms = get_tr_forms(Callback),
+    {ok, Code} = case compile:forms(Forms, []) of
+		     {ok, xmpp_tr, Bin} -> {ok, Bin};
+		     {ok, xmpp_tr, Bin, _Warnings} -> {ok, Bin};
+		     Error -> Error
+		 end,
+    {module, xmpp_tr} = code:load_binary(xmpp_tr, "nofile", Code),
+    ok.
 
 %%%===================================================================
 %%% Functions to construct general XMPP errors
@@ -919,7 +952,7 @@ err(Type, Reason, Code, Text, Lang) ->
 serr(Reason) ->
     #stream_error{reason = Reason}.
 
--spec serr(atom() | 'see-other-host'(), binary(),
+-spec serr(atom() | 'see-other-host'(), reason_text(),
 	   binary()) -> stream_error().
 serr(Reason, Text, Lang) ->
     #stream_error{reason = Reason,
@@ -942,10 +975,10 @@ match_tag(El, TagName, XMLNS, TopXMLNS) ->
 
 -spec translate(lang(), reason_text()) -> binary().
 translate(Lang, {Format, Args}) ->
-    TranslatedFormat = translate:translate(Lang, iolist_to_binary(Format)),
+    TranslatedFormat = xmpp_tr:tr(Lang, iolist_to_binary(Format)),
     iolist_to_binary(io_lib:format(TranslatedFormat, Args));
 translate(Lang, Text) ->
-    translate:translate(Lang, Text).
+    xmpp_tr:tr(Lang, Text).
 
 -spec prep_lang(binary()) -> binary().
 prep_lang(L) ->
@@ -968,3 +1001,22 @@ get_text([#text{lang = L, data = Data}|Text], Lang, Result) ->
     end;
 get_text([], _Lang, Result) ->
     Result.
+
+-spec get_tr_forms({module(), atom()} | undefined) -> [erl_parse:abstract_form()].
+get_tr_forms(Callback) ->
+    Module = "-module(xmpp_tr).",
+    Export = "-export([tr/2]).",
+    Tr = case Callback of
+	     {Mod, Fun} ->
+		 io_lib:format("tr(Lang, Text) -> '~s':'~s'(Lang, Text).",
+			       [Mod, Fun]);
+	     undefined ->
+		 "tr(_, Text) -> Text."
+	 end,
+    lists:map(
+      fun(Expr) ->
+	      {ok, Tokens, _} =
+		  erl_scan:string(lists:flatten(Expr)),
+	      {ok, Form} = erl_parse:parse_form(Tokens),
+	      Form
+      end, [Module, Export, Tr]).

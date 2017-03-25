@@ -30,14 +30,6 @@ dec_bool(<<"false">>) -> false.
 enc_bool(true) -> <<"1">>;
 enc_bool(false) -> <<"0">>.
 
-enc_jid(J) -> jid:to_string(J).
-
-dec_jid(Val) ->
-    case jid:from_string(Val) of
-      error -> erlang:error(badarg);
-      J -> J
-    end.
-
 format_error({form_type_mismatch, Type}) ->
     <<"FORM_TYPE doesn't match '", Type/binary, "'">>;
 format_error({bad_var_value, Var, Type}) ->
@@ -92,19 +84,18 @@ decode(Fs, Acc) ->
 			 <<"http://jabber.org/protocol/muc#request">>}})
     end.
 
-encode(Cfg) -> encode(Cfg, fun (Text) -> Text end).
+encode(Cfg) -> encode(Cfg, <<"en">>).
 
-encode(List, Translate) when is_list(List) ->
+encode(List, Lang) when is_list(List) ->
     Fs = [case Opt of
-	    {role, Val} -> [encode_role(Val, default, Translate)];
-	    {role, Val, Opts} ->
-		[encode_role(Val, Opts, Translate)];
-	    {jid, Val} -> [encode_jid(Val, Translate)];
+	    {role, Val} -> [encode_role(Val, default, Lang)];
+	    {role, Val, Opts} -> [encode_role(Val, Opts, Lang)];
+	    {jid, Val} -> [encode_jid(Val, Lang)];
 	    {jid, _, _} -> erlang:error({badarg, Opt});
-	    {roomnick, Val} -> [encode_roomnick(Val, Translate)];
+	    {roomnick, Val} -> [encode_roomnick(Val, Lang)];
 	    {roomnick, _, _} -> erlang:error({badarg, Opt});
 	    {request_allow, Val} ->
-		[encode_request_allow(Val, Translate)];
+		[encode_request_allow(Val, Lang)];
 	    {request_allow, _, _} -> erlang:error({badarg, Opt});
 	    #xdata_field{} -> [Opt];
 	    _ -> []
@@ -148,7 +139,7 @@ decode([#xdata_field{var = <<"muc#jid">>,
 		     values = [Value]}
 	| Fs],
        Acc, Required) ->
-    try dec_jid(Value) of
+    try jid:decode(Value) of
       Result -> decode(Fs, [{jid, Result} | Acc], Required)
     catch
       _:_ ->
@@ -236,34 +227,36 @@ decode([], _, [Var | _]) ->
 		   <<"http://jabber.org/protocol/muc#request">>}});
 decode([], Acc, []) -> Acc.
 
-encode_role(Value, Options, Translate) ->
+encode_role(Value, Options, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [enc_enum(Value)]
 	     end,
     Opts = if Options == default ->
-		  [#xdata_option{label = Translate(<<"Participant">>),
+		  [#xdata_option{label =
+				     xmpp_tr:tr(Lang, <<"Participant">>),
 				 value = <<"participant">>}];
 	      true ->
-		  [#xdata_option{label = Translate(L),
+		  [#xdata_option{label = xmpp_tr:tr(Lang, L),
 				 value = enc_enum(V)}
 		   || {L, V} <- Options]
 	   end,
     #xdata_field{var = <<"muc#role">>, values = Values,
 		 required = false, type = 'list-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"Requested role">>)}.
+		 desc = <<>>,
+		 label = xmpp_tr:tr(Lang, <<"Requested role">>)}.
 
-encode_jid(Value, Translate) ->
+encode_jid(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
-	       Value -> [enc_jid(Value)]
+	       Value -> [jid:encode(Value)]
 	     end,
     Opts = [],
     #xdata_field{var = <<"muc#jid">>, values = Values,
 		 required = false, type = 'jid-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"User JID">>)}.
+		 desc = <<>>, label = xmpp_tr:tr(Lang, <<"User JID">>)}.
 
-encode_roomnick(Value, Translate) ->
+encode_roomnick(Value, Lang) ->
     Values = case Value of
 	       <<>> -> [];
 	       Value -> [Value]
@@ -271,9 +264,9 @@ encode_roomnick(Value, Translate) ->
     Opts = [],
     #xdata_field{var = <<"muc#roomnick">>, values = Values,
 		 required = false, type = 'text-single', options = Opts,
-		 desc = <<>>, label = Translate(<<"Nickname">>)}.
+		 desc = <<>>, label = xmpp_tr:tr(Lang, <<"Nickname">>)}.
 
-encode_request_allow(Value, Translate) ->
+encode_request_allow(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [enc_bool(Value)]
@@ -282,4 +275,5 @@ encode_request_allow(Value, Translate) ->
     #xdata_field{var = <<"muc#request_allow">>,
 		 values = Values, required = false, type = boolean,
 		 options = Opts, desc = <<>>,
-		 label = Translate(<<"Grant voice to this person?">>)}.
+		 label =
+		     xmpp_tr:tr(Lang, <<"Grant voice to this person?">>)}.
