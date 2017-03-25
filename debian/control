@@ -1,7 +1,7 @@
 Source: erlang-p1-xmpp
 Priority: optional
 Maintainer: Mathias Ertl <mati@jabber.at>
-Build-Depends: debhelper (>= 9), dh-rebar, erlang-eunit, erlang-p1-xml (>=1.1.19), 
+Build-Depends: debhelper (>= 9), dh-rebar, erlang-eunit, erlang-p1-xml (>=1.1.28), 
  erlang-p1-stringprep (>= 1.0.7), erlang-syntax-tools, libexpat1-dev
 Standards-Version: 3.9.8
 Section: libs
@@ -12,7 +12,7 @@ VCS-Git: https://github.com/jabber-at/xmpp.git
 Package: erlang-p1-xmpp
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, erlang-base | ${erlang-abi:Depends},
-         ${erlang:Depends}, erlang-p1-xml (>=1.1.19), erlang-p1-stringprep (>= 1.0.7)
+         ${erlang:Depends}, erlang-p1-xml (>=1.1.21), erlang-p1-stringprep (>= 1.0.8)
 Conflicts: ejabberd (<< 1:16.12)
 Description: Erlang/Elixir XMPP parsing and serialization library
  This library was written for ejabberd which still uses it.

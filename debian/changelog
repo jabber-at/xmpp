@@ -2,6 +2,7 @@ erlang-p1-xmpp (1.1.9-0.1) unstable; urgency=medium
 
   * New upstream release.
   * Use upstream tags for source packages.
+  * Depend on erlang-p1-xml (>=1.1.21) and erlang-p1-stringprep (>= 1.0.8).
 
  -- Mathias Ertl <mati@jabber.at>  Sat, 25 Mar 2017 11:37:24 +0100
 
