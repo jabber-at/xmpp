@@ -1,7 +1,7 @@
 Source: erlang-p1-xmpp
 Priority: optional
 Maintainer: Mathias Ertl <mati@jabber.at>
-Build-Depends: debhelper (>= 9), dh-rebar, erlang-eunit, erlang-p1-xml (>=1.1.28), 
+Build-Depends: debhelper (>= 9), dh-rebar, erlang-eunit, erlang-p1-xml (>=1.1.21), 
  erlang-p1-stringprep (>= 1.0.7), erlang-syntax-tools, libexpat1-dev
 Standards-Version: 3.9.8
 Section: libs
