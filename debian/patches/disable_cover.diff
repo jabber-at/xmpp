@@ -1,0 +1,16 @@
+Description: disable coverage report
+ Without this patch, coverage reports are disabled. This currently fails under
+ Ubuntu Zesty for unknown reasons. See also:
+Author: Mathias Ertl <mati@jabber.at>
+Bug: https://github.com/processone/fast_xml/issues/21
+--- a/rebar.config
++++ b/rebar.config
+@@ -25,7 +25,7 @@
+ 	    {i, "deps/fast_xml/include"}]}.
+ 
+ 
+-{cover_enabled, true}.
++{cover_enabled, false}.
+ {cover_export_enabled, true}.
+ 
+ {xref_checks, [undefined_function_calls, undefined_functions,

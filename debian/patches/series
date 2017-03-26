@@ -1,2 +1,3 @@
 remove-deps.diff
 fix-includes.diff
+disable_cover.diff
