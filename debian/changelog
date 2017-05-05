@@ -1,3 +1,9 @@
+erlang-p1-xmpp (1:1.1.9-0.1) unstable; urgency=medium
+
+  * Add epoch. Fuck debian versioning.
+
+ -- Mathias Ertl <mati@jabber.at>  Fri, 05 May 2017 14:15:50 +0200
+
 erlang-p1-xmpp (1.1.9-0.1) unstable; urgency=medium
 
   * New upstream release.
