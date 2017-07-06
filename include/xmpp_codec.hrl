@@ -146,7 +146,7 @@
                  stored :: 'undefined' | non_neg_integer()}).
 -type expire() :: #expire{}.
 
--record(muc_unsubscribe, {}).
+-record(muc_unsubscribe, {jid :: undefined | jid:jid()}).
 -type muc_unsubscribe() :: #muc_unsubscribe{}.
 
 -record(ps_unsubscribe, {node = <<>> :: binary(),
@@ -186,6 +186,17 @@
                       to :: undefined | jid:jid()}).
 -type muc_decline() :: #muc_decline{}.
 
+-record(upload_slot_0, {get :: binary(),
+                        put :: binary(),
+                        xmlns = <<>> :: binary()}).
+-type upload_slot_0() :: #upload_slot_0{}.
+
+-record(upload_request_0, {filename = <<>> :: binary(),
+                           size :: pos_integer(),
+                           'content-type' = <<>> :: binary(),
+                           xmlns = <<>> :: binary()}).
+-type upload_request_0() :: #upload_request_0{}.
+
 -record(sm_a, {h :: non_neg_integer(),
                xmlns = <<>> :: binary()}).
 -type sm_a() :: #sm_a{}.
@@ -202,6 +213,7 @@
 
 -record(muc_subscribe, {nick = <<>> :: binary(),
                         password = <<>> :: binary(),
+                        jid :: undefined | jid:jid(),
                         events = [] :: [binary()]}).
 -type muc_subscribe() :: #muc_subscribe{}.
 
@@ -272,9 +284,6 @@
 
 -record(nick, {name = <<>> :: binary()}).
 -type nick() :: #nick{}.
-
--record(p1_ack, {}).
--type p1_ack() :: #p1_ack{}.
 
 -record(feature_sm, {xmlns = <<>> :: binary()}).
 -type feature_sm() :: #feature_sm{}.
@@ -363,9 +372,6 @@
 -record(sasl_auth, {mechanism = <<>> :: binary(),
                     text = <<>> :: binary()}).
 -type sasl_auth() :: #sasl_auth{}.
-
--record(p1_push, {}).
--type p1_push() :: #p1_push{}.
 
 -record(feature_csi, {xmlns = <<>> :: binary()}).
 -type feature_csi() :: #feature_csi{}.
@@ -459,9 +465,6 @@
                        id = <<>> :: binary()}).
 -type mam_archived() :: #mam_archived{}.
 
--record(p1_rebind, {}).
--type p1_rebind() :: #p1_rebind{}.
-
 -record(compress_failure, {reason :: 'processing-failed' | 'setup-failed' | 'undefined' | 'unsupported-method'}).
 -type compress_failure() :: #compress_failure{}.
 
@@ -545,6 +548,10 @@
                   ver :: 'undefined' | binary(),
                   os :: 'undefined' | binary()}).
 -type version() :: #version{}.
+
+-record(push_disable, {jid :: jid:jid(),
+                       node = <<>> :: binary()}).
+-type push_disable() :: #push_disable{}.
 
 -record(legacy_auth_feature, {}).
 -type legacy_auth_feature() :: #legacy_auth_feature{}.
@@ -738,6 +745,11 @@
                 fields = [] :: [#xdata_field{}]}).
 -type xdata() :: #xdata{}.
 
+-record(push_enable, {jid :: jid:jid(),
+                      node = <<>> :: binary(),
+                      xdata :: 'undefined' | #xdata{}}).
+-type push_enable() :: #push_enable{}.
+
 -record(xcaptcha, {xdata :: #xdata{}}).
 -type xcaptcha() :: #xcaptcha{}.
 
@@ -875,6 +887,9 @@
                      forwarded :: 'undefined' | #forwarded{}}).
 -type delegation() :: #delegation{}.
 
+-record(push_notification, {xdata :: 'undefined' | #xdata{}}).
+-type push_notification() :: #push_notification{}.
+
 -record(mix_join, {jid :: undefined | jid:jid(),
                    subscribe = [] :: [binary()]}).
 -type mix_join() :: #mix_join{}.
@@ -956,7 +971,6 @@
                         privacy_list() |
                         carbons_sent() |
                         mam_archived() |
-                        p1_rebind() |
                         sasl_abort() |
                         db_result() |
                         carbons_received() |
@@ -1008,6 +1022,7 @@
                         sasl_failure() |
                         vcard_name() |
                         adhoc_note() |
+                        push_disable() |
                         legacy_auth_feature() |
                         rosterver_feature() |
                         muc_invite() |
@@ -1026,9 +1041,9 @@
                         search() |
                         ps_publish() |
                         nick() |
-                        p1_ack() |
                         block() |
                         delegation() |
+                        push_notification() |
                         mix_join() |
                         xmpp_session() |
                         xdata() |
@@ -1054,6 +1069,8 @@
                         privacy_item() |
                         disco_item() |
                         ps_item() |
+                        upload_slot_0() |
+                        upload_request_0() |
                         mam_prefs() |
                         sasl_mechanisms() |
                         caps() |
@@ -1090,6 +1107,7 @@
                         mix_leave() |
                         muc_subscribe() |
                         privilege() |
+                        push_enable() |
                         muc_unique() |
                         sasl_response() |
                         message() |
@@ -1101,7 +1119,6 @@
                         ps_unsubscribe() |
                         chatstate() |
                         sasl_auth() |
-                        p1_push() |
                         oob_x() |
                         unblock() |
                         muc_admin() |

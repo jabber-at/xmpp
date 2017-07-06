@@ -1043,24 +1043,6 @@
 	   module = rfc6120,
            result = {stream_features, '$_els'}}).
 
--xml(p1_push,
-     #elem{name = <<"push">>,
-           result = {p1_push},
-	   module = p1_stream,
-           xmlns = <<"p1:push">>}).
-
--xml(p1_rebind,
-     #elem{name = <<"rebind">>,
-           result = {p1_rebind},
-	   module = p1_stream,
-           xmlns = <<"p1:rebind">>}).
-
--xml(p1_ack,
-     #elem{name = <<"ack">>,
-           result = {p1_ack},
-	   module = p1_stream,
-           xmlns = <<"p1:ack">>}).
-
 -xml(caps,
      #elem{name = <<"c">>,
            xmlns = <<"http://jabber.org/protocol/caps">>,
@@ -2913,15 +2895,21 @@
      #elem{name = <<"subscribe">>,
 	   xmlns = <<"urn:xmpp:mucsub:0">>,
 	   module = p1_mucsub,
-	   result = {muc_subscribe, '$nick', '$password', '$events'},
-	   attrs = [#attr{name = <<"nick">>, required = true}, #attr{name = <<"password">>}],
+	   result = {muc_subscribe, '$nick', '$password', '$jid', '$events'},
+	   attrs = [#attr{name = <<"nick">>, required = true}, #attr{name = <<"password">>},
+		    #attr{name = <<"jid">>,
+                          dec = {jid, decode, []},
+                          enc = {jid, encode, []}}],
 	   refs = [#ref{name = muc_subscribe_event, label = '$events'}]}).
 
 -xml(muc_unsubscribe,
      #elem{name = <<"unsubscribe">>,
 	   xmlns = <<"urn:xmpp:mucsub:0">>,
 	   module = p1_mucsub,
-	   result = {muc_unsubscribe}}).
+	   attrs = [#attr{name = <<"jid">>,
+			  dec = {jid, decode, []},
+			  enc = {jid, encode, []}}],
+	   result = {muc_unsubscribe, '$jid'}}).
 
 -xml(rsm_after,
      #elem{name = <<"after">>,
@@ -3898,6 +3886,78 @@
 	   attrs = [#attr{name = <<"xmlns">>}],
 	   refs = [#ref{name = upload_get, min = 0, max = 1, label = '$get'},
 		   #ref{name = upload_put, min = 0, max = 1, label = '$put'}]}).
+
+-xml(upload_request_0,
+     #elem{name = <<"request">>,
+	   xmlns = <<"urn:xmpp:http:upload:0">>,
+	   module = 'xep0363',
+	   result = {upload_request_0, '$filename', '$size', '$content-type',
+		     '$xmlns'},
+	   attrs = [#attr{name = <<"xmlns">>},
+		    #attr{name = <<"filename">>,
+			  required = true},
+		    #attr{name = <<"size">>,
+			  dec = {dec_int, [1, inifinity]},
+			  enc = {enc_int, []},
+			  required = true},
+		    #attr{name = <<"content-type">>}]}).
+
+-xml(upload_get_0,
+     #elem{name = <<"get">>,
+	   xmlns = <<"urn:xmpp:http:upload:0">>,
+	   module = 'xep0363',
+	   result = '$url',
+           attrs = [#attr{name = <<"url">>,
+			  required = true}]}).
+
+-xml(upload_put_0,
+     #elem{name = <<"put">>,
+	   xmlns = <<"urn:xmpp:http:upload:0">>,
+	   module = 'xep0363',
+	   result = '$url',
+           attrs = [#attr{name = <<"url">>,
+			  required = true}]}).
+
+-xml(upload_slot_0,
+     #elem{name = <<"slot">>,
+	   xmlns = <<"urn:xmpp:http:upload:0">>,
+	   module = 'xep0363',
+	   result = {upload_slot_0, '$get', '$put', '$xmlns'},
+	   attrs = [#attr{name = <<"xmlns">>}],
+	   refs = [#ref{name = upload_get_0, label = '$get',
+			min = 1, max = 1},
+		   #ref{name = upload_put_0, label = '$put',
+			min = 1, max = 1}]}).
+
+-xml(push_enable,
+     #elem{name = <<"enable">>,
+	   xmlns = <<"urn:xmpp:push:0">>,
+	   module = 'xep0357',
+	   result = {push_enable, '$jid', '$node', '$xdata'},
+	   attrs = [#attr{name = <<"jid">>,
+			  dec = {jid, decode, []},
+			  enc = {jid, encode, []},
+			  required = true},
+		    #attr{name = <<"node">>}],
+	   refs = [#ref{name = xdata, min = 0, max = 1}]}).
+
+-xml(push_disable,
+     #elem{name = <<"disable">>,
+	   xmlns = <<"urn:xmpp:push:0">>,
+	   module = 'xep0357',
+	   result = {push_disable, '$jid', '$node'},
+	   attrs = [#attr{name = <<"jid">>,
+			  dec = {jid, decode, []},
+			  enc = {jid, encode, []},
+			  required = true},
+		    #attr{name = <<"node">>}]}).
+
+-xml(push_notification,
+     #elem{name = <<"notification">>,
+	   xmlns = <<"urn:xmpp:push:0">>,
+	   module = 'xep0357',
+	   result = {push_notification, '$xdata'},
+	   refs = [#ref{name = xdata, min = 0, max = 1}]}).
 
 -xml(thumbnail,
      #elem{name = <<"thumbnail">>,

@@ -149,6 +149,7 @@
 -define(NS_MAM_1, <<"urn:xmpp:mam:1">>).
 -define(NS_SID_0, <<"urn:xmpp:sid:0">>).
 -define(NS_PING, <<"urn:xmpp:ping">>).
+-define(NS_PUSH_0, <<"urn:xmpp:push:0">>).
 -define(NS_CARBONS_2, <<"urn:xmpp:carbons:2">>).
 -define(NS_CARBONS_1, <<"urn:xmpp:carbons:1">>).
 -define(NS_FORWARD, <<"urn:xmpp:forward:0">>).
@@ -156,6 +157,7 @@
 -define(NS_STREAM_MGMT_2,  <<"urn:xmpp:sm:2">>).
 -define(NS_STREAM_MGMT_3,  <<"urn:xmpp:sm:3">>).
 -define(NS_HTTP_UPLOAD, <<"urn:xmpp:http:upload">>).
+-define(NS_HTTP_UPLOAD_0, <<"urn:xmpp:http:upload:0">>).
 -define(NS_HTTP_UPLOAD_OLD, <<"eu:siacs:conversations:http:upload">>).
 -define(NS_THUMBS_1, <<"urn:xmpp:thumbs:1">>).
 -define(NS_NICK,  <<"http://jabber.org/protocol/nick">>).
