@@ -5,12 +5,12 @@ Author: Mathias Ertl <mati@jabber.at>
 Bug: https://github.com/processone/fast_xml/issues/21
 --- a/rebar.config
 +++ b/rebar.config
-@@ -25,7 +25,7 @@
- 	    {i, "deps/fast_xml/include"}]}.
+@@ -31,7 +31,7 @@
  
+ {clean_files, ["c_src/jid.gcda", "c_src/jid.gcno"]}.
  
 -{cover_enabled, true}.
 +{cover_enabled, false}.
  {cover_export_enabled, true}.
  
- {xref_checks, [undefined_function_calls, undefined_functions,
+ {xref_checks, [undefined_function_calls, undefined_functions, deprecated_function_calls, deprecated_functions]}.
