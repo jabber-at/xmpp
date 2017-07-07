@@ -1,3 +1,9 @@
+erlang-p1-xmpp (1:1.1.13-0.2) unstable; urgency=medium
+
+  * Install .so files in priv/.
+
+ -- Mathias Ertl <mati@jabber.at>  Thu, 06 Jul 2017 23:34:33 +0200
+
 erlang-p1-xmpp (1:1.1.13-0.1) unstable; urgency=medium
 
   * New upstream release.
