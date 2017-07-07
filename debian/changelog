@@ -1,6 +1,7 @@
 erlang-p1-xmpp (1:1.1.13-0.2) unstable; urgency=medium
 
   * Install .so files in priv/.
+  * Add check to test for dh_rebar version to prevent future mistakes.
 
  -- Mathias Ertl <mati@jabber.at>  Thu, 06 Jul 2017 23:34:33 +0200
 
