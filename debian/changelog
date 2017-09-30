@@ -4,6 +4,7 @@ erlang-p1-xmpp (1:1.1.15-0.1) unstable; urgency=medium
   * Update watch file.
   * Merge changes to debian/rules from upstream.
   * Install doc/API.md as documentation.
+  * Update copyright file.
 
  -- Mathias Ertl <mati@jabber.at>  Sat, 30 Sep 2017 12:45:29 +0200
 
