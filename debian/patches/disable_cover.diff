@@ -3,9 +3,11 @@ Description: disable coverage report
  Ubuntu Zesty for unknown reasons. See also:
 Author: Mathias Ertl <mati@jabber.at>
 Bug: https://github.com/processone/fast_xml/issues/21
---- a/rebar.config
-+++ b/rebar.config
-@@ -31,7 +31,7 @@
+Index: erlang-p1-xmpp/rebar.config
+===================================================================
+--- erlang-p1-xmpp.orig/rebar.config
++++ erlang-p1-xmpp/rebar.config
+@@ -32,7 +32,7 @@
  
  {clean_files, ["c_src/jid.gcda", "c_src/jid.gcno"]}.
  
