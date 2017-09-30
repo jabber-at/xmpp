@@ -1,6 +1,7 @@
 erlang-p1-xmpp (1:1.1.15-0.1) unstable; urgency=medium
 
   * New upstream release.
+  * Update watch file.
 
  -- Mathias Ertl <mati@jabber.at>  Sat, 30 Sep 2017 12:45:29 +0200
 
