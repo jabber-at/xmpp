@@ -5,6 +5,8 @@ erlang-p1-xmpp (1:1.1.15-0.1) unstable; urgency=medium
   * Merge changes to debian/rules from upstream.
   * Install doc/API.md as documentation.
   * Update copyright file.
+  * Update Standards-Version to 4.1.1 (no changes needed).
+  * Add erlang-base as build dependency.
 
  -- Mathias Ertl <mati@jabber.at>  Sat, 30 Sep 2017 12:45:29 +0200
 
