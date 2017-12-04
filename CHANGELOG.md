@@ -1,6 +1,14 @@
+# Version 1.1.16
+
+* Updating fast_xml to version 1.1.25.
+* Add support for NS_MAM_2
+* Improve handling of pubsub requests
+* Add supporgt for RFC 7622
+* Allow multiple text element inside stanza/stream_error
+
 # Version 1.1.15
 
-* Updating fast_xml to version 1.1.23.
+* Updating fast_xml to version 1.1.24.
 * Updating p1_utils to version 1.0.10.
 * Updating stringprep to version 1.0.10.
 * Compatibility with R19.3+

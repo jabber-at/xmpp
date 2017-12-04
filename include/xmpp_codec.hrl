@@ -152,7 +152,8 @@
 -record(mix_leave, {}).
 -type mix_leave() :: #mix_leave{}.
 
--record(muc_unsubscribe, {jid :: undefined | jid:jid()}).
+-record(muc_unsubscribe, {nick = <<>> :: binary(),
+                          jid :: undefined | jid:jid()}).
 -type muc_unsubscribe() :: #muc_unsubscribe{}.
 
 -record(ps_unsubscribe, {node = <<>> :: binary(),
@@ -923,7 +924,7 @@
 -type privacy_query() :: #privacy_query{}.
 
 -record(stream_error, {reason :: atom() | #'see-other-host'{},
-                       text :: 'undefined' | #text{}}).
+                       text = [] :: [#text{}]}).
 -type stream_error() :: #stream_error{}.
 
 -record(sm_failed, {reason :: atom() | #gone{} | #redirect{},
@@ -936,7 +937,7 @@
                        code :: 'undefined' | non_neg_integer(),
                        by = <<>> :: binary(),
                        reason :: atom() | #gone{} | #redirect{},
-                       text :: 'undefined' | #text{},
+                       text = [] :: [#text{}],
                        sub_els = [] :: [xmpp_element() | fxml:xmlel()]}).
 -type stanza_error() :: #stanza_error{}.
 
@@ -1008,12 +1009,12 @@
                         vcard_sound() |
                         avatar_data() |
                         ps_retract() |
+                        text() |
                         vcard_photo() |
                         version() |
                         stat_error() |
                         sasl_challenge() |
                         compression() |
-                        text() |
                         addresses() |
                         vcard_tel() |
                         media() |
@@ -1077,6 +1078,7 @@
                         client_id() |
                         push_disable() |
                         sasl_success() |
+                        search() |
                         privacy_query() |
                         carbons_sent() |
                         db_feature() |
@@ -1127,7 +1129,6 @@
                         last() |
                         private() |
                         sm_enable() |
-                        search() |
                         stream_start() |
                         media_uri() |
                         rosterver_feature() |
