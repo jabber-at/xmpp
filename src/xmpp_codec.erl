@@ -33,12 +33,10 @@ is_known_tag({xmlel, Name, Attrs, _}, TopXMLNS) ->
     XMLNS = get_attr(<<"xmlns">>, Attrs, TopXMLNS),
     get_mod(Name, XMLNS) /= undefined.
 
-pp(Term) ->
-    case get_mod(Term) of
-      undefined ->
-	  io_lib_pretty:print(Term, fun (_, _) -> no end);
-      Mod -> io_lib_pretty:print(Term, fun Mod:pp/2)
-    end.
+get_els(Term) -> Mod = get_mod(Term), Mod:get_els(Term).
+
+set_els(Term, Els) ->
+    Mod = get_mod(Term), Mod:set_els(Term, Els).
 
 do_decode(Name, <<>>, _, _) ->
     erlang:error({xmpp_codec, {missing_tag_xmlns, Name}});
@@ -196,6 +194,15 @@ recompile_resolver(Mods, ResolverMod) ->
     {module, ResolverMod} = code:load_binary(ResolverMod,
 					     "nofile", Code),
     ok.
+
+pp(xmlel, 3) -> [name, attrs, children];
+pp(Name, Arity) ->
+    case get_mod(erlang:make_tuple(Arity + 1, undefined,
+				   [{1, Name}]))
+	of
+      undefined -> no;
+      Mod -> Mod:pp(Name, Arity)
+    end.
 
 records() -> [].
 
@@ -618,22 +625,12 @@ get_mod(<<"query">>, <<"jabber:iq:register">>) ->
     xep0077;
 get_mod(<<"CLASS">>, <<"vcard-temp">>) -> xep0054;
 get_mod(<<"result">>, <<"urn:xmpp:mam:2">>) -> xep0313;
-get_mod(<<"storage">>, <<"storage:bookmarks">>) ->
-    xep0048;
-get_mod(<<"LINE">>, <<"vcard-temp">>) -> xep0054;
-get_mod(<<"PRODID">>, <<"vcard-temp">>) -> xep0054;
-get_mod(<<"publish-options">>,
-	<<"http://jabber.org/protocol/pubsub">>) ->
-    xep0060;
 get_mod(<<"purge">>,
 	<<"http://jabber.org/protocol/pubsub#event">>) ->
     xep0060;
 get_mod(<<"header">>,
 	<<"http://jabber.org/protocol/shim">>) ->
     xep0131;
-get_mod(<<"reason">>,
-	<<"http://jabber.org/protocol/muc#admin">>) ->
-    xep0045;
 get_mod(<<"failed">>, <<"urn:xmpp:sm:3">>) -> xep0198;
 get_mod(<<"x">>, <<"jabber:x:expire">>) -> xep0023;
 get_mod(<<"policy-violation">>,
@@ -834,6 +831,8 @@ get_mod(<<"unsupported-feature">>,
 	<<"urn:ietf:params:xml:ns:xmpp-streams">>) ->
     rfc6120;
 get_mod(<<"DESC">>, <<"vcard-temp">>) -> xep0054;
+get_mod(<<"request">>, <<"urn:xmpp:receipts">>) ->
+    xep0184;
 get_mod(<<"url">>, <<"storage:bookmarks">>) -> xep0048;
 get_mod(<<"unexpected-request">>,
 	<<"urn:ietf:params:xml:ns:xmpp-stanzas">>) ->
@@ -947,6 +946,8 @@ get_mod(<<"URL">>, <<"vcard-temp">>) -> xep0054;
 get_mod(<<"headers">>,
 	<<"http://jabber.org/protocol/shim">>) ->
     xep0131;
+get_mod(<<"received">>, <<"urn:xmpp:receipts">>) ->
+    xep0184;
 get_mod(<<"jid-malformed">>,
 	<<"urn:ietf:params:xml:ns:xmpp-stanzas">>) ->
     rfc6120;
@@ -998,6 +999,9 @@ get_mod(<<"invalid-id">>,
 	<<"urn:ietf:params:xml:ns:xmpp-streams">>) ->
     rfc6120;
 get_mod(<<"PUBLIC">>, <<"vcard-temp">>) -> xep0054;
+get_mod(<<"precondition-not-met">>,
+	<<"http://jabber.org/protocol/pubsub#errors">>) ->
+    xep0060;
 get_mod(<<"item">>,
 	<<"http://jabber.org/protocol/offline">>) ->
     xep0013;
@@ -1324,6 +1328,16 @@ get_mod(<<"no-permanent-store">>,
     xep0334;
 get_mod(<<"filename">>, <<"urn:xmpp:http:upload">>) ->
     xep0363;
+get_mod(<<"storage">>, <<"storage:bookmarks">>) ->
+    xep0048;
+get_mod(<<"LINE">>, <<"vcard-temp">>) -> xep0054;
+get_mod(<<"PRODID">>, <<"vcard-temp">>) -> xep0054;
+get_mod(<<"publish-options">>,
+	<<"http://jabber.org/protocol/pubsub">>) ->
+    xep0060;
+get_mod(<<"reason">>,
+	<<"http://jabber.org/protocol/muc#admin">>) ->
+    xep0045;
 get_mod(Name, XMLNS) ->
     xmpp_codec_external:lookup(Name, XMLNS).
 
@@ -1479,6 +1493,7 @@ get_mod({gone, _}) -> rfc6120;
 get_mod({sasl_response, _}) -> rfc6120;
 get_mod({chatstate, _}) -> xep0085;
 get_mod({muc_unique, _}) -> xep0045;
+get_mod({receipt_response, _}) -> xep0184;
 get_mod({sic, _, _, _}) -> xep0279;
 get_mod({sm_resumed, _, _, _}) -> xep0198;
 get_mod({offline_item, _, _}) -> xep0013;
@@ -1503,6 +1518,7 @@ get_mod({sasl_abort}) -> rfc6120;
 get_mod({starttls_proceed}) -> rfc6120;
 get_mod({compressed}) -> xep0138;
 get_mod({stream_error, _, _}) -> rfc6120;
+get_mod({receipt_request}) -> xep0184;
 get_mod({upload_request_0, _, _, _, _}) -> xep0363;
 get_mod({privacy_item, _, _, _, _, _, _, _, _}) ->
     xep0016;

@@ -162,6 +162,14 @@ do_get_ns({mam_query, Xmlns, _, _, _, _, _, _, _}) ->
     Xmlns;
 do_get_ns({mam_result, Xmlns, _, _, _}) -> Xmlns.
 
+get_els({mam_result, _xmlns, _queryid, _id,
+	 _sub_els}) ->
+    _sub_els.
+
+set_els({mam_result, _xmlns, _queryid, _id, _},
+	_sub_els) ->
+    {mam_result, _xmlns, _queryid, _id, _sub_els}.
+
 pp(mam_query, 8) ->
     [xmlns, id, start, 'end', with, withtext, rsm, xdata];
 pp(mam_archived, 2) -> [by, id];

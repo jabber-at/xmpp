@@ -2301,6 +2301,7 @@
 			 'nodeid-required' | 'not-in-roster-group' |
 			 'not-subscribed' | 'payload-too-big' |
 			 'payload-required' | 'pending-subscription' |
+			 'precondition-not-met' |
 			 'presence-subscription-required' | 'subid-required' |
 			 'too-many-subscriptions' | 'unsupported' |
 			 'unsupported-access-model'.
@@ -2323,7 +2324,8 @@
 		      'retract-items' | 'retrieve-affiliations' |
 		      'retrieve-default' | 'retrieve-items' |
 		      'retrieve-subscriptions' | 'subscribe' |
-		      'subscription-options' | 'subscription-notifications'.
+		      'subscription-options' | 'subscription-notifications' |
+		      'multi-items'.
 -record(ps_error, {type :: ps_error_type(), feature :: ps_feature()}).
 -type ps_error() :: #ps_error{}.
 
@@ -2412,6 +2414,11 @@
            xmlns = <<"http://jabber.org/protocol/pubsub#errors">>,
 	   module = 'xep0060',
            result = {ps_error, 'pending-subscription', '$_'}}).
+-xml(pubsub_error_precondition_not_met,
+     #elem{name = <<"precondition-not-met">>,
+           xmlns = <<"http://jabber.org/protocol/pubsub#errors">>,
+	   module = 'xep0060',
+           result = {ps_error, 'precondition-not-met', '$_'}}).
 -xml(pubsub_error_presence_subscription_required,
      #elem{name = <<"presence-subscription-required">>,
            xmlns = <<"http://jabber.org/protocol/pubsub#errors">>,
@@ -2457,6 +2464,7 @@
                                              'meta-data',
                                              'modify-affiliations',
                                              'multi-collection',
+					     'multi-items',
                                              'multi-subscribe',
                                              'outcast-affiliation',
                                              'persistent-items',
@@ -3797,6 +3805,19 @@
 			label = '$url'},
 		   #ref{name = oob_desc, default = <<"">>,
 			min = 0, max = 1, label = '$desc'}]}).
+
+-xml(receipt_request,
+     #elem{name = <<"request">>,
+	   xmlns = <<"urn:xmpp:receipts">>,
+	   module = 'xep0184',
+	   result = {receipt_request}}).
+
+-xml(receipt_response,
+     #elem{name = <<"received">>,
+	   xmlns = <<"urn:xmpp:receipts">>,
+	   module = 'xep0184',
+	   result = {receipt_response, '$id'},
+	   attrs = [#attr{name = <<"id">>}]}).
 
 -xml(sic_ip,
      #elem{name = <<"ip">>,

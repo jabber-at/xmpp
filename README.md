@@ -153,8 +153,8 @@ to work with them:
 - `sub_els`: [get_els/1](doc/API.md#get_els1) and [set_els/2](doc/API.md#set_els2) can be used;
   additional functions to work with subtags directly are:
   [set_subtag/2](doc/API.md#set_subtag2), [get_subtag/2](doc/API.md#get_subtag2),
-  [remove_subtag/2](doc/API.md#remove_subtag2), [has_subtag/2](doc/API.md#has_subtag2) and
-  [append_subtags/2](doc/API.md#append_subtags2).
+  [remove_subtag/2](doc/API.md#remove_subtag2), [has_subtag/2](doc/API.md#has_subtag2),
+  [try_subtag/2](doc/API.md#try_subtag2) and [append_subtags/2](doc/API.md#append_subtags2).
 - `meta`: this field is intended for attaching arbitrary Erlang terms to
   stanzas; the field is represented by a `map()` and can be manipulated
   using standard [maps](http://erlang.org/doc/man/maps.html) module, but
@@ -272,6 +272,7 @@ XMPP elements from the following documents are supported:
 - [XEP-0153](https://xmpp.org/extensions/xep-0153.html):  vCard-Based Avatars
 - [XEP-0158](https://xmpp.org/extensions/xep-0158.html):  CAPTCHA Forms
 - [XEP-0172](https://xmpp.org/extensions/xep-0172.html):  User Nickname
+- [XEP-0184](https://xmpp.org/extensions/xep-0184.html):  Message Delivery Receipts
 - [XEP-0191](https://xmpp.org/extensions/xep-0191.html):  Blocking Command
 - [XEP-0198](https://xmpp.org/extensions/xep-0198.html):  Stream Management
 - [XEP-0199](https://xmpp.org/extensions/xep-0199.html):  XMPP Ping
