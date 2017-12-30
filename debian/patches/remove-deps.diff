@@ -7,11 +7,11 @@ Index: erlang-p1-xmpp/rebar.config
 ===================================================================
 --- erlang-p1-xmpp.orig/rebar.config
 +++ erlang-p1-xmpp/rebar.config
-@@ -29,9 +29,6 @@
+@@ -30,9 +30,6 @@
+ {port_specs, [{"priv/lib/jid.so", ["c_src/jid.c"]},
+ 	      {"priv/lib/xmpp_uri.so", ["c_src/xmpp_uri.c"]}]}.
  
- {port_specs, [{"priv/lib/jid.so", ["c_src/jid.c"]}]}.
- 
--{deps, [{fast_xml, ".*", {git, "https://github.com/processone/fast_xml", {tag, "1.1.25"}}},
+-{deps, [{fast_xml, ".*", {git, "https://github.com/processone/fast_xml", {tag, "1.1.26"}}},
 -        {stringprep, ".*", {git, "https://github.com/processone/stringprep", {tag, "1.0.10"}}},
 -        {p1_utils, ".*", {git, "https://github.com/processone/p1_utils", {tag, "1.0.10"}}}]}.
  

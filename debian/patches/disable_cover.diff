@@ -7,7 +7,7 @@ Index: erlang-p1-xmpp/rebar.config
 ===================================================================
 --- erlang-p1-xmpp.orig/rebar.config
 +++ erlang-p1-xmpp/rebar.config
-@@ -32,7 +32,7 @@
+@@ -33,7 +33,7 @@
  
  {clean_files, ["c_src/jid.gcda", "c_src/jid.gcno"]}.
  
