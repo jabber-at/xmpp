@@ -1,13 +1,12 @@
 %%%-------------------------------------------------------------------
 %%% @author Evgeny Khramtsov <ekhramtsov@process-one.net>
-%%% @copyright (C) 2015-2017, Evgeny Khramtsov
 %%% @doc
 %%%
 %%% @end
 %%% Created :  9 Dec 2015 by Evgeny Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
-%%% Copyright (C) 2002-2017 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2018 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -111,7 +110,7 @@ start(_StartType, _StartArgs) ->
 	{ok, _} = application:ensure_all_started(stringprep),
 	ok = jid:start(),
 	ok = xmpp_uri:start(),
-	{ok, self()}
+	xmpp_sup:start_link()
     catch _:{badmatch, Err} ->
 	    Err
     end.
@@ -497,14 +496,30 @@ get_text(Text, Lang) ->
 
 -spec mk_text(reason_text()) -> [text()].
 mk_text(Text) ->
-    mk_text(Text, <<"en">>).
+    mk_text(Text, <<"">>).
 
 -spec mk_text(reason_text(), lang()) -> [text()].
-mk_text(<<"">>, _) ->
+mk_text(<<"">>, _Lang) ->
     [];
-mk_text(Text, Lang) ->
-    [#text{lang = Lang,
-	   data = translate(Lang, Text)}].
+mk_text({Format, Args}, Lang) ->
+    InFormat = iolist_to_binary(Format),
+    OutFormat = xmpp_tr:tr(Lang, InFormat),
+    InTxt = iolist_to_binary(io_lib:format(InFormat, Args)),
+    if InFormat == OutFormat ->
+	    [#text{data = InTxt, lang = <<"en">>}];
+       true ->
+	    OutTxt = iolist_to_binary(io_lib:format(OutFormat, Args)),
+	    [#text{data = OutTxt, lang = Lang},
+	     #text{data = InTxt, lang = <<"en">>}]
+    end;
+mk_text(InTxt, Lang) ->
+    OutTxt = xmpp_tr:tr(Lang, InTxt),
+    if OutTxt == InTxt ->
+	    [#text{data = InTxt, lang = <<"en">>}];
+       true ->
+	    [#text{data = OutTxt, lang = Lang},
+	     #text{data = InTxt, lang = <<"en">>}]
+    end.
 
 -spec pp(any()) -> iodata().
 pp(Term) ->
@@ -574,7 +589,7 @@ err_gone() ->
 err_gone(Text, Lang) ->
     err(modify, 'gone', 302, Text, Lang).
 
-%% RFC 6120 sasy error type SHOULD be "cancel".
+%% RFC 6120 says error type SHOULD be "cancel".
 %% RFC 3920 and XEP-0082 says it SHOULD be "wait".
 -spec err_internal_server_error() -> stanza_error().
 err_internal_server_error() ->
@@ -976,13 +991,6 @@ match_tag(El, TagName, XMLNS, TopXMLNS) ->
 	_ ->
 	    false
     end.
-
--spec translate(lang(), reason_text()) -> binary().
-translate(Lang, {Format, Args}) ->
-    TranslatedFormat = xmpp_tr:tr(Lang, iolist_to_binary(Format)),
-    iolist_to_binary(io_lib:format(TranslatedFormat, Args));
-translate(Lang, Text) ->
-    xmpp_tr:tr(Lang, Text).
 
 -spec prep_lang(binary()) -> binary().
 prep_lang(L) ->

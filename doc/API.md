@@ -223,11 +223,14 @@ during lazy decoding only top-level element is decoded.
 #message{id = <<>>,type = normal,lang = <<>>,
          from = undefined,to = undefined,subject = [],body = [],
          thread = undefined,
-         sub_els = [#chatstate{type = composing}],
+         sub_els = [#chatstate{type = composing},
+                    #xmlel{name = <<"foo">>,
+                           attrs = [{<<"xmlns">>,<<"unknown:namespace">>}],
+                           children = []}],
          meta = #{}}
 ```
-Note that in this case `<foo/>` element is dropped from `#message.sub_els`
-because it doesn't correspond to any `xmpp_element()` record.
+Note that in this case all known sub-elements were decoded, and unknown
+sub-elements (`<foo/>` in our case) remain untouched.
 
 **Example 3**: no namespace is provided and `El` doesn't possess any
 ```erlang
@@ -243,7 +246,10 @@ It is safe to apply the function to `xmpp_element()`:
 #message{id = <<>>,type = normal,lang = <<>>,
          from = undefined,to = undefined,subject = [],body = [],
          thread = undefined,
-         sub_els = [#chatstate{type = composing}],
+         sub_els = [#chatstate{type = composing},
+                    #xmlel{name = <<"foo">>,
+                           attrs = [{<<"xmlns">>,<<"unknown:namespace">>}],
+                           children = []}],
          meta = #{}}
 ```
 
@@ -685,7 +691,7 @@ false
 ```
 Inserts `Tag` into sub-elements of `Stanza`.
 If `Stanza` already contains an element with the same tag name
-and namespace as `Tag`, the first occurence of such element is replaced by `Tag`.
+and namespace as `Tag`, the first occurrence of such element is replaced by `Tag`.
 Otherwise `Tag` is appended to the end of the list of
 sub-elements. Note that even malformed element will be replaced if
 it is matched, because decoding is not applied during matching.
@@ -1275,22 +1281,24 @@ By default, no translation callback is set and thus translation is not performed
 **Example 1**: installing the callback
 ```erlang
 > xmpp:mk_text(<<"hello">>, <<"ru">>).
-[#text{lang = <<"ru">>,data = <<"hello">>}]
+[#text{lang = <<"en">>,data = <<"hello">>}]
 > my_trans_mod:trans(<<"ru">>, <<"hello">>).
 <<"привет">>.
 > xmpp:set_tr_callback({my_trans_mod, trans}).
 ok
 > xmpp:mk_text(<<"hello">>, <<"ru">>).
-[#text{lang = <<"ru">>,data = <<"привет">>}]
+[#text{lang = <<"ru">>,data = <<"привет">>},
+ #text{lang = <<"en">>,data = <<"hello">>}]
 ```
 **Example 2**: uninstalling any callback
 ```erlang
 > xmpp:mk_text(<<"hello">>, <<"ru">>).
-[#text{lang = <<"ru">>,data = <<"привет">>}]
+[#text{lang = <<"ru">>,data = <<"привет">>},
+ #text{lang = <<"en">>,data = <<"hello">>}]
 > xmpp:set_tr_callback(undefined).
 ok
 > xmpp:mk_text(<<"hello">>, <<"ru">>).
-[#text{lang = <<"ru">>,data = <<"hello">>}]
+[#text{lang = <<"en">>,data = <<"hello">>}]
 ```
 
 ## get_text/1

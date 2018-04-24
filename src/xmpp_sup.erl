@@ -3,7 +3,7 @@
 %%% @doc
 %%%
 %%% @end
-%%% Created : 10 Jul 2016 by Evgeny Khramtsov <ekhramtsov@process-one.net>
+%%% Created :  3 Mar 2018 by Evgeny Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
 %%% Copyright (C) 2002-2018 ProcessOne, SARL. All Rights Reserved.
@@ -21,13 +21,28 @@
 %%% limitations under the License.
 %%%
 %%%-------------------------------------------------------------------
+-module(xmpp_sup).
 
--record(jid, {user = <<"">> :: binary(),
-              server = <<"">> :: binary(),
-              resource = <<"">> :: binary(),
-              luser = <<"">> :: binary(),
-              lserver = <<"">> :: binary(),
-              lresource = <<"">> :: binary()}).
+-behaviour(supervisor).
 
--type(jid() :: #jid{}).
--type(ljid() :: {binary(), binary(), binary()}).
+%% API
+-export([start_link/0]).
+
+%% Supervisor callbacks
+-export([init/1]).
+
+%%%===================================================================
+%%% API functions
+%%%===================================================================
+start_link() ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+
+%%%===================================================================
+%%% Supervisor callbacks
+%%%===================================================================
+init([]) ->
+    {ok, {{one_for_one, 10, 1}, []}}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

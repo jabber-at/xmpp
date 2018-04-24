@@ -1,6 +1,6 @@
 %%%----------------------------------------------------------------------
 %%%
-%%% Copyright (C) 2002-2017 ProcessOne, SARL. All Rights Reserved.
+%%% Copyright (C) 2002-2018 ProcessOne, SARL. All Rights Reserved.
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -185,3 +185,4 @@
 -define(NS_MUCSUB_NODES_SUBSCRIBERS, <<"urn:xmpp:mucsub:nodes:subscribers">>).
 -define(NS_AVATAR_DATA, <<"urn:xmpp:avatar:data">>).
 -define(NS_AVATAR_METADATA, <<"urn:xmpp:avatar:metadata">>).
+-define(NS_PEP_VCARD_CONVERSION_0, <<"urn:xmpp:pep-vcard-conversion:0">>).
