@@ -1,1 +1,3 @@
-source: maintainer-upload-has-incorrect-version-number
+erlang-p1-xmpp source: debian-watch-does-not-check-gpg-signature
+erlang-p1-xmpp source: testsuite-autopkgtest-missing
+erlang-p1-xmpp source: maintainer-upload-has-incorrect-version-number

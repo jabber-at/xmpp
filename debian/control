@@ -1,19 +1,30 @@
 Source: erlang-p1-xmpp
-Priority: optional
 Maintainer: Mathias Ertl <mati@jabber.at>
-Build-Depends: debhelper (>= 9), dh-rebar, erlang-base (>= 1:17.5), erlang-eunit, 
- erlang-p1-xml (>=1.1.29), erlang-p1-stringprep (>= 1.0.11), erlang-p1-utils (>= 1.0.11),
- erlang-syntax-tools, libexpat1-dev
-Standards-Version: 4.1.3
 Section: libs
-Homepage: https://github.com/processone/xmpp
+Priority: optional
+Build-Depends: debhelper (>= 9),
+               dh-rebar,
+               erlang-base (>= 1:17.5),
+               erlang-eunit,
+               erlang-p1-xml (>= 1.1.30),
+               erlang-p1-stringprep (>= 1.0.11),
+               erlang-p1-utils (>= 1.0.11),
+               erlang-syntax-tools,
+               libexpat1-dev
+Standards-Version: 4.1.4
 VCS-Browser: https://github.com/jabber-at/xmpp
 VCS-Git: https://github.com/jabber-at/xmpp.git
+Homepage: https://github.com/processone/xmpp
 
 Package: erlang-p1-xmpp
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, erlang-base (>= 1:17.5) | ${erlang-abi:Depends},
-         ${erlang:Depends}, erlang-p1-xml (>=1.1.29), erlang-p1-stringprep (>= 1.0.11)
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         erlang-base (>= 1:17.5) | ${erlang-abi:Depends},
+         ${erlang:Depends},
+         erlang-p1-xml (>= 1.1.30),
+         erlang-p1-stringprep (>= 1.0.11),
+         erlang-p1-utils (>= 1.0.11)
 Description: Erlang/Elixir XMPP parsing and serialization library
  This library provides comprehensive representation of XMPP elements as
  well as tools to work with them. Every such element is represented by an
