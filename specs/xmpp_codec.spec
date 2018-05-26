@@ -421,7 +421,9 @@
            xmlns = [<<"jabber:client">>, <<"jabber:server">>,
 		    <<"jabber:component:accept">>],
 	   module = rfc6120,
-           result = '$cdata'}).
+           result = {message_thread, '$parent', '$data'},
+	   attrs = [#attr{name = <<"parent">>}],
+	   cdata = #cdata{label = '$data'}}).
 
 -record(message, {id = <<>> :: binary(),
                   type = normal :: message_type(),
@@ -430,7 +432,7 @@
                   to :: undefined | jid:jid(),
                   subject = [] :: [#text{}],
                   body = [] :: [#text{}],
-                  thread :: undefined | binary(),
+                  thread :: undefined | message_thread(),
                   sub_els = [] :: [xmpp_element() | fxml:xmlel()],
 		  meta = #{} :: map()}).
 -type message() :: #message{}.
@@ -3591,11 +3593,11 @@
 			  enc = {jid, encode, []},
 			  dec = {jid, decode, []}}]}).
 
--xml(client_id,
-     #elem{name = <<"client-id">>,
+-xml(origin_id,
+     #elem{name = <<"origin-id">>,
 	   xmlns = <<"urn:xmpp:sid:0">>,
 	   module = 'xep0359',
-	   result = {client_id, '$id'},
+	   result = {origin_id, '$id'},
 	   attrs = [#attr{name = <<"id">>, required = true}]}).
 
 -xml(adhoc_command_prev,

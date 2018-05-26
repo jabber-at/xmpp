@@ -1233,6 +1233,8 @@ get_mod(<<"subscription">>,
 get_mod(<<"addresses">>,
 	<<"http://jabber.org/protocol/address">>) ->
     xep0033;
+get_mod(<<"origin-id">>, <<"urn:xmpp:sid:0">>) ->
+    xep0359;
 get_mod(<<"note">>,
 	<<"http://jabber.org/protocol/commands">>) ->
     xep0050;
@@ -1245,8 +1247,6 @@ get_mod(<<"password">>,
 	<<"http://jabber.org/protocol/muc">>) ->
     xep0045;
 get_mod(<<"r">>, <<"urn:xmpp:sm:2">>) -> xep0198;
-get_mod(<<"client-id">>, <<"urn:xmpp:sid:0">>) ->
-    xep0359;
 get_mod(<<"uri">>, <<"urn:xmpp:media-element">>) ->
     xep0221;
 get_mod(<<"connection-timeout">>,
@@ -1347,9 +1347,7 @@ get_mod({carbons_disable}) -> xep0280;
 get_mod({last, _, _}) -> xep0012;
 get_mod({compression, _}) -> xep0138;
 get_mod({mam_prefs, _, _, _, _}) -> xep0313;
-get_mod({stanza_error, _, _, _, _, _, _}) -> rfc6120;
 get_mod({muc_user, _, _, _, _, _, _}) -> xep0045;
-get_mod({avatar_pointer, _, _, _, _, _, _}) -> xep0084;
 get_mod({bytestreams, _, _, _, _, _, _}) -> xep0065;
 get_mod({muc_invite, _, _, _, _}) -> xep0045;
 get_mod({sasl_auth, _, _}) -> rfc6120;
@@ -1370,7 +1368,7 @@ get_mod({muc_destroy, _, _, _, _}) -> xep0045;
 get_mod({carbons_received, _}) -> xep0280;
 get_mod({carbons_sent, _}) -> xep0280;
 get_mod({hint, _}) -> xep0334;
-get_mod({client_id, _}) -> xep0359;
+get_mod({origin_id, _}) -> xep0359;
 get_mod({disco_items, _, _, _}) -> xep0030;
 get_mod({private, _}) -> xep0049;
 get_mod({sasl_challenge, _}) -> rfc6120;
@@ -1429,6 +1427,7 @@ get_mod({carbons_private}) -> xep0280;
 get_mod({mix_leave}) -> xep0369;
 get_mod({avatar_info, _, _, _, _, _, _}) -> xep0084;
 get_mod({privacy_list, _, _}) -> xep0016;
+get_mod({message_thread, _, _}) -> rfc6120;
 get_mod({text, _, _}) -> rfc6120;
 get_mod({shim, _}) -> xep0131;
 get_mod({mam_archived, _, _}) -> xep0313;
@@ -1534,4 +1533,6 @@ get_mod({muc_unsubscribe, _, _}) -> p1_mucsub;
 get_mod({search, _, _, _, _, _, _, _}) -> xep0055;
 get_mod({expire, _, _}) -> xep0023;
 get_mod({privilege, _, _}) -> xep0356;
+get_mod({stanza_error, _, _, _, _, _, _}) -> rfc6120;
+get_mod({avatar_pointer, _, _, _, _, _, _}) -> xep0084;
 get_mod(Record) -> xmpp_codec_external:lookup(Record).
