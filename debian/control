@@ -1,14 +1,15 @@
 Source: erlang-p1-xmpp
 Maintainer: Mathias Ertl <mati@jabber.at>
+XSBC-Orig-Maintainer: Ejabberd Packaging Team <ejabberd@packages.debian.org>
 Section: libs
 Priority: optional
-Build-Depends: debhelper (>= 9),
+Build-Depends: debhelper (>= 11~),
                dh-rebar,
-               erlang-base (>= 1:17.5),
+               erlang-base (>= 1:19.2),
                erlang-eunit,
-               erlang-p1-xml (>= 1.1.30),
-               erlang-p1-stringprep (>= 1.0.11),
-               erlang-p1-utils (>= 1.0.11),
+               erlang-p1-xml (>= 1.1.32),
+               erlang-p1-stringprep (>= 1.0.12),
+               erlang-p1-utils (>= 1.0.12),
                erlang-syntax-tools,
                libexpat1-dev
 Standards-Version: 4.1.4
@@ -20,11 +21,11 @@ Package: erlang-p1-xmpp
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         erlang-base (>= 1:17.5) | ${erlang-abi:Depends},
+         erlang-base (>= 1:19.2) | ${erlang-abi:Depends},
          ${erlang:Depends},
-         erlang-p1-xml (>= 1.1.30),
-         erlang-p1-stringprep (>= 1.0.11),
-         erlang-p1-utils (>= 1.0.11)
+         erlang-p1-xml (>= 1.1.32),
+         erlang-p1-stringprep (>= 1.0.12),
+         erlang-p1-utils (>= 1.0.12)
 Description: Erlang/Elixir XMPP parsing and serialization library
  This library provides comprehensive representation of XMPP elements as
  well as tools to work with them. Every such element is represented by an
