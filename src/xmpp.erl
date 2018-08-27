@@ -41,14 +41,16 @@
 	 decode_els/1, decode_els/3, pp/1, get_name/1, get_text/1,
 	 get_text/2, mk_text/1, mk_text/2, is_known_tag/1, is_known_tag/2,
 	 append_subtags/2, prep_lang/1, register_codec/1, unregister_codec/1,
-	 set_tr_callback/1]).
+	 set_tr_callback/1, format_stanza_error/1, format_stanza_error/2,
+	 format_stream_error/1, format_stream_error/2, format_sasl_error/1,
+	 format_sasl_error/2]).
 
 %% XMPP errors
 -export([err_bad_request/0, err_bad_request/2,
          err_conflict/0, err_conflict/2,
          err_feature_not_implemented/0, err_feature_not_implemented/2,
          err_forbidden/0, err_forbidden/2,
-         err_gone/0, err_gone/2,
+         err_gone/1, err_gone/3,
          err_internal_server_error/0, err_internal_server_error/2,
          err_item_not_found/0, err_item_not_found/2,
          err_jid_malformed/0, err_jid_malformed/2,
@@ -58,7 +60,7 @@
 	 err_payment_required/0, err_payment_required/2,
          err_policy_violation/0, err_policy_violation/2,
          err_recipient_unavailable/0, err_recipient_unavailable/2,
-         err_redirect/0, err_redirect/2,
+         err_redirect/1, err_redirect/3,
          err_registration_required/0, err_registration_required/2,
          err_remote_server_not_found/0, err_remote_server_not_found/2,
          err_remote_server_timeout/0, err_remote_server_timeout/2,
@@ -88,7 +90,7 @@
          serr_reset/0, serr_reset/2,
          serr_resource_constraint/0, serr_resource_constraint/2,
          serr_restricted_xml/0, serr_restricted_xml/2,
-         serr_see_other_host/0, serr_see_other_host/2,
+         serr_see_other_host/1, serr_see_other_host/3,
          serr_system_shutdown/0, serr_system_shutdown/2,
          serr_undefined_condition/0, serr_undefined_condition/2,
          serr_unsupported_encoding/0, serr_unsupported_encoding/2,
@@ -110,6 +112,7 @@ start(_StartType, _StartArgs) ->
 	{ok, _} = application:ensure_all_started(stringprep),
 	ok = jid:start(),
 	ok = xmpp_uri:start(),
+	ok = xmpp_lang:start(),
 	xmpp_sup:start_link()
     catch _:{badmatch, Err} ->
 	    Err
@@ -377,6 +380,30 @@ format_error(Reason) ->
 io_format_error(Reason) ->
     xmpp_codec:io_format_error(Reason).
 
+-spec format_stanza_error(stanza_error()) -> binary().
+format_stanza_error(Err) ->
+    format_stanza_error(Err, <<"en">>).
+
+-spec format_stanza_error(stanza_error(), binary()) -> binary().
+format_stanza_error(#stanza_error{reason = Reason, text = Text}, Lang) ->
+    format_s_error(Reason, Text, Lang).
+
+-spec format_stream_error(stream_error()) -> binary().
+format_stream_error(Err) ->
+    format_stream_error(Err, <<"en">>).
+
+-spec format_stream_error(stream_error(), binary()) -> binary().
+format_stream_error(#stream_error{reason = Reason, text = Text}, Lang) ->
+    format_s_error(Reason, Text, Lang).
+
+-spec format_sasl_error(sasl_failure()) -> binary().
+format_sasl_error(Err) ->
+    format_sasl_error(Err, <<"en">>).
+
+-spec format_sasl_error(sasl_failure(), binary()) -> binary().
+format_sasl_error(#sasl_failure{reason = Reason, text = Text}, Lang) ->
+    format_s_error(Reason, Text, Lang).
+
 -spec is_stanza(any()) -> boolean().
 is_stanza(#message{}) -> true;
 is_stanza(#iq{}) -> true;
@@ -581,13 +608,13 @@ err_forbidden(Text, Lang) ->
 
 %% RFC 6120 says error type SHOULD be "cancel".
 %% RFC 3920 and XEP-0082 says it SHOULD be "modify".
--spec err_gone() -> stanza_error().
-err_gone() ->
-    err(modify, 'gone', 302).
+-spec err_gone(binary()) -> stanza_error().
+err_gone(URI) ->
+    err(modify, #gone{uri = URI}, 302).
 
--spec err_gone(reason_text(), lang()) -> stanza_error().
-err_gone(Text, Lang) ->
-    err(modify, 'gone', 302, Text, Lang).
+-spec err_gone(binary(), reason_text(), lang()) -> stanza_error().
+err_gone(URI, Text, Lang) ->
+    err(modify, #gone{uri = URI}, 302, Text, Lang).
 
 %% RFC 6120 says error type SHOULD be "cancel".
 %% RFC 3920 and XEP-0082 says it SHOULD be "wait".
@@ -665,13 +692,13 @@ err_recipient_unavailable() ->
 err_recipient_unavailable(Text, Lang) ->
     err(wait, 'recipient-unavailable', 404, Text, Lang).
 
--spec err_redirect() -> stanza_error().
-err_redirect() ->
-    err(modify, 'redirect', 302).
+-spec err_redirect(binary()) -> stanza_error().
+err_redirect(URI) ->
+    err(modify, #redirect{uri = URI}, 302).
 
--spec err_redirect(reason_text(), lang()) -> stanza_error().
-err_redirect(Text, Lang) ->
-    err(modify, 'redirect', 302, Text, Lang).
+-spec err_redirect(binary(), reason_text(), lang()) -> stanza_error().
+err_redirect(URI, Text, Lang) ->
+    err(modify, #redirect{uri = URI}, 302, Text, Lang).
 
 -spec err_registration_required() -> stanza_error().
 err_registration_required() ->
@@ -898,13 +925,13 @@ serr_restricted_xml() ->
 serr_restricted_xml(Text, Lang) ->
     serr('restricted-xml', Text, Lang).
 
--spec serr_see_other_host() -> stream_error().
-serr_see_other_host() ->
-    serr('see-other-host').
+-spec serr_see_other_host(xmpp_host()) -> stream_error().
+serr_see_other_host(HostPort) ->
+    serr(#'see-other-host'{host = HostPort}).
 
--spec serr_see_other_host(reason_text(), lang()) -> stream_error().
-serr_see_other_host(Text, Lang) ->
-    serr('see-other-host', Text, Lang).
+-spec serr_see_other_host(xmpp_host(), reason_text(), lang()) -> stream_error().
+serr_see_other_host(HostPort, Text, Lang) ->
+    serr(#'see-other-host'{host = HostPort}, Text, Lang).
 
 -spec serr_system_shutdown() -> stream_error().
 serr_system_shutdown() ->
@@ -1032,6 +1059,23 @@ get_tr_forms(Callback) ->
 	      {ok, Form} = erl_parse:parse_form(Tokens),
 	      Form
       end, [Module, Export, Tr]).
+
+-spec format_s_error(atom() | gone() | redirect() | 'see-other-host'(),
+		     [text()], binary()) -> binary().
+format_s_error(Reason, Text, Lang) ->
+    Slogan = if Reason == undefined ->
+		     <<"no reason">>;
+		is_atom(Reason) ->
+		     atom_to_binary(Reason, latin1);
+		is_tuple(Reason) ->
+		     atom_to_binary(element(1, Reason), latin1)
+	     end,
+    case xmpp:get_text(Text, Lang) of
+	<<"">> ->
+	    Slogan;
+	Data ->
+	    <<Data/binary, " (", Slogan/binary, ")">>
+    end.
 
 pp(jid, 6) ->
     record_info(fields, jid);

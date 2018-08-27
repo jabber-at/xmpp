@@ -183,11 +183,14 @@
      #elem{name = <<"item">>,
            xmlns = <<"urn:xmpp:blocking">>,
 	   module = 'xep0191',
-           result = '$jid',
+           result = {block_item, '$jid', '$spam_report'},
            attrs = [#attr{name = <<"jid">>,
                           required = true,
                           dec = {jid, decode, []},
-                          enc = {jid, encode, []}}]}).
+                          enc = {jid, encode, []}}],
+           refs = [#ref{name = report,
+                        label = '$spam_report',
+                        min = 0, max = 1}]}).
 
 -xml(block,
      #elem{name = <<"block">>,
@@ -212,6 +215,41 @@
            result = {block_list, '$items'},
 	   refs = [#ref{name = block_item,
                         label = '$items'}]}).
+
+-xml(report_reason_abuse,
+     #elem{name = <<"abuse">>,
+	   xmlns = <<"urn:xmpp:reporting:0">>,
+	   module = 'xep0377',
+	   result = 'abuse'}).
+
+-xml(report_reason_spam,
+     #elem{name = <<"spam">>,
+	   xmlns = <<"urn:xmpp:reporting:0">>,
+	   module = 'xep0377',
+	   result = 'spam'}).
+
+-xml(report_text,
+     #elem{name = <<"text">>,
+	   xmlns = <<"urn:xmpp:reporting:0">>,
+	   module = 'xep0377',
+	   result = {text, '$lang', '$data'},
+	   cdata = #cdata{label = '$data'},
+	   attrs = [#attr{name = <<"xml:lang">>,
+			  label = '$lang'}]}).
+
+-xml(report,
+     #elem{name = <<"report">>,
+	   xmlns = <<"urn:xmpp:reporting:0">>,
+	   module = 'xep0377',
+	   result = {report, '$reason', '$text'},
+	   refs = [#ref{name = report_reason_abuse,
+			label = '$reason',
+			min = 0, max = 1},
+		   #ref{name = report_reason_spam,
+			label = '$reason',
+			min = 0, max = 1},
+		   #ref{name = report_text,
+			label = '$text'}]}).
 
 -xml(disco_identity,
      #elem{name = <<"identity">>,
@@ -3156,8 +3194,7 @@
      #elem{name = <<"csi">>,
 	   xmlns = <<"urn:xmpp:csi:0">>,
 	   module = 'xep0352',
-	   result = {feature_csi, '$xmlns'},
-	   attrs = [#attr{name = <<"xmlns">>}]}).
+	   result = {feature_csi}}).
 
 -record(csi, {type :: active | inactive}).
 -type csi() :: #csi{}.
@@ -3955,6 +3992,38 @@
 		   #ref{name = upload_put_0, label = '$put',
 			min = 1, max = 1}]}).
 
+-xml(upload_max_file_size,
+     #elem{name = <<"max-file-size">>,
+	   xmlns = [<<"urn:xmpp:http:upload:0">>,
+		    <<"urn:xmpp:http:upload">>,
+		    <<"eu:siacs:conversations:http:upload">>],
+	   module = 'xep0363',
+	   result = '$cdata',
+	   cdata = #cdata{required = true,
+			  enc = {enc_int, []},
+			  dec = {dec_int, []}}}).
+
+-xml(upload_file_too_large,
+     #elem{name = <<"file-too-large">>,
+	   xmlns = [<<"urn:xmpp:http:upload:0">>,
+		    <<"urn:xmpp:http:upload">>,
+		    <<"eu:siacs:conversations:http:upload">>],
+	   module = 'xep0363',
+	   result = {upload_file_too_large, '$max-file-size', '$xmlns'},
+	   attrs = [#attr{name = <<"xmlns">>}],
+	   refs = [#ref{name = upload_max_file_size,
+			label = '$max-file-size',
+			min = 0, max = 1}]}).
+
+-xml(upload_retry,
+     #elem{name = <<"retry">>,
+	   xmlns = <<"urn:xmpp:http:upload:0">>,
+	   module = 'xep0363',
+	   result = {upload_retry, '$stamp'},
+	   attrs = [#attr{name = <<"stamp">>,
+			  dec = {dec_utc, []},
+			  enc = {enc_utc, []}}]}).
+
 -xml(push_enable,
      #elem{name = <<"enable">>,
 	   xmlns = <<"urn:xmpp:push:0">>,
@@ -4201,8 +4270,10 @@ enc_ip(Addr) ->
 -spec base64:decode(_) -> binary().
 -spec base64:mime_decode(_) -> binary().
 
+-type xmpp_host() :: binary() | inet:ip_address() |
+		     {binary() | inet:ip_address(), inet:port_number()}.
 -spec dec_host_port(_) -> binary() | inet:ip_address() |
-			  {binary() | inet:ip_address(), non_neg_integer()}.
+			  {binary() | inet:ip_address(), inet:port_number()}.
 dec_host_port(<<$[, T/binary>>) ->
     [IP, <<$:, Port/binary>>] = binary:split(T, <<$]>>),
     {dec_ip(IP), dec_int(Port, 0, 65535)};
@@ -4216,14 +4287,16 @@ dec_host_port(S) ->
 
 enc_host_port(Host) when is_binary(Host) ->
     Host;
-enc_host_port({{_,_,_,_,_,_,_,_} = IPv6, Port}) ->
-    enc_host_port({<<$[, (enc_ip(IPv6))/binary, $]>>, Port});
-enc_host_port({{_,_,_,_} = IPv4, Port}) ->
-    enc_host_port({enc_ip(IPv4), Port});
+enc_host_port({Addr, Port}) when is_tuple(Addr) ->
+    enc_host_port({enc_host_port(Addr), Port});
 enc_host_port({Host, Port}) ->
     <<Host/binary, $:, (integer_to_binary(Port))/binary>>;
-enc_host_port(Addr) ->
-    enc_ip(Addr).
+enc_host_port({_,_,_,_} = IPv4) ->
+    enc_ip(IPv4);
+enc_host_port({0,0,0,0,0,16#ffff,_,_} = IP) ->
+    enc_ip(IP);
+enc_host_port({_,_,_,_,_,_,_,_} = IPv6) ->
+    <<$[, (enc_ip(IPv6))/binary, $]>>.
 
 -spec dec_version(_) -> {non_neg_integer(), non_neg_integer()}.
 dec_version(S) ->

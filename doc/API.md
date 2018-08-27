@@ -52,6 +52,12 @@ The following functions are exported from `xmpp` module:
 - [get_error/1](#get_error1)
 - [format_error/1](#format_error1)
 - [io_format_error/1](#io_format_error1)
+- [format_stanza_error/1](#format_stanza_error1)
+- [format_stanza_error/2](#format_stanza_error2)
+- [format_stream_error/1](#format_stream_error1)
+- [format_stream_error/2](#format_stream_error2)
+- [format_sasl_error/1](#format_sasl_error1)
+- [format_sasl_error/2](#format_sasl_error2)
 - [pp/1](#pp1)
 - [set_tr_callback/1](#set_tr_callback1)
 - [get_text/1](#get_text1)
@@ -66,8 +72,8 @@ The following functions are exported from `xmpp` module:
 - [err_feature_not_implemented/2](#err_feature_not_implemented2)
 - [err_forbidden/0](#err_forbidden0)
 - [err_forbidden/2](#err_forbidden2)
-- [err_gone/0](#err_gone0)
-- [err_gone/2](#err_gone2)
+- [err_gone/1](#err_gone1)
+- [err_gone/3](#err_gone3)
 - [err_internal_server_error/0](#err_internal_server_error0)
 - [err_internal_server_error/2](#err_internal_server_error2)
 - [err_item_not_found/0](#err_item_not_found0)
@@ -86,8 +92,8 @@ The following functions are exported from `xmpp` module:
 - [err_policy_violation/2](#err_policy_violation2)
 - [err_recipient_unavailable/0](#err_recipient_unavailable0)
 - [err_recipient_unavailable/2](#err_recipient_unavailable2)
-- [err_redirect/0](#err_redirect0)
-- [err_redirect/2](#err_redirect2)
+- [err_redirect/1](#err_redirect1)
+- [err_redirect/3](#err_redirect3)
 - [err_registration_required/0](#err_registration_required0)
 - [err_registration_required/2](#err_registration_required2)
 - [err_remote_server_not_found/0](#err_remote_server_not_found0)
@@ -142,8 +148,8 @@ The following functions are exported from `xmpp` module:
 - [serr_resource_constraint/2](#serr_resource_constraint2)
 - [serr_restricted_xml/0](#serr_restricted_xml0)
 - [serr_restricted_xml/2](#serr_restricted_xml2)
-- [serr_see_other_host/0](#serr_see_other_host0)
-- [serr_see_other_host/2](#serr_see_other_host2)
+- [serr_see_other_host/1](#serr_see_other_host1)
+- [serr_see_other_host/3](#serr_see_other_host3)
 - [serr_system_shutdown/0](#serr_system_shutdown0)
 - [serr_system_shutdown/2](#serr_system_shutdown2)
 - [serr_undefined_condition/0](#serr_undefined_condition0)
@@ -1246,6 +1252,80 @@ suitable for using in formatting functions from
 Missing attribute 'id' in tag <iq/> qualified by namespace 'jabber:client'
 ```
 
+## format_stanza_error/1
+```erlang
+-spec format_stanza_error(Err :: stanza_error()) -> binary().
+```
+Same as `format_stanza_error(Err, <<"en">>)`.
+
+
+## format_stanza_error/2
+```erlang
+-spec format_stanza_error(Err :: stanza_error(), Lang :: binary()) -> binary().
+```
+
+Creates diagnostic text from `stanza_error()` element.
+
+**Example**:
+```erlang
+> Err.
+#stanza_error{type = cancel,code = 501,by = <<>>,
+              reason = 'feature-not-implemented',
+              text = [#text{lang = <<"en">>,
+                            data = <<"Unsupported query">>}],
+              sub_els = []}
+> xmpp:format_stanza_error(Err, <<"en">>).
+<<"Unsupported query (feature-not-implemented)">>
+```
+
+## format_stream_error/1
+```erlang
+-spec format_stream_error(Err :: stream_error()) -> binary().
+```
+Same as `format_stream_error(Err, <<"en">>)`.
+
+
+## format_stream_error/2
+```erlang
+-spec format_stream_error(Err :: stream_error(), Lang :: binary()) -> binary().
+```
+
+Creates diagnostic text from `stream_error()` element.
+
+**Example**:
+```erlang
+> Err.
+#stream_error{reason = 'policy-violation',
+              text = [#text{lang = <<"en">>,
+                            data = <<"Too many connections">>}]}
+> xmpp:format_stream_error(Err, <<"en">>).
+<<"Too many connections (policy-violation)">>
+```
+
+## format_sasl_error/1
+```erlang
+-spec format_sasl_error(Err :: sasl_failure()) -> binary().
+```
+Same as `format_sasl_error(Err, <<"en">>)`.
+
+
+## format_sasl_error/2
+```erlang
+-spec format_sasl_error(Err :: sasl_failure(), Lang :: binary()) -> binary().
+```
+
+Creates diagnostic text from `sasl_failure()` element.
+
+**Example**:
+```erlang
+> Err.
+#sasl_failure{reason = 'not-authorized',
+              text = [#text{lang = <<"en">>,
+                            data = <<"Invalid username">>}]}
+> xmpp:format_sasl_error(Err, <<"en">>).
+<<"Invalid username (not-authorized)">>
+```
+
 ## pp/1
 ```erlang
 -spec pp(any()) -> iodata().
@@ -1404,19 +1484,22 @@ Creates 'forbidden' stanza error.
 ```
 Creates 'forbidden' stanza error.
 
-## err_gone/0
+## err_gone/1
 ```erlang
--spec err_gone() -> stanza_error()
+-spec err_gone(URI :: binary()) -> stanza_error()
 ```
 Creates 'gone' stanza error.
+`URI` is a Uniform or Internationalized Resource Identifier, typically an XMPP IRI.
 
-## err_gone/2
+## err_gone/3
 ```erlang
 -spec err_gone(
+         URI  :: binary(),
          Desc :: binary() | {io:format(), list()},
          Lang :: binary()) -> stanza_error()
 ```
 Creates 'gone' stanza error.
+`URI` is a Uniform or Internationalized Resource Identifier, typically an XMPP IRI.
 
 ## err_internal_server_error/0
 ```erlang
@@ -1544,19 +1627,22 @@ Creates 'recipient-unavailable' stanza error.
 ```
 Creates 'recipient-unavailable' stanza error.
 
-## err_redirect/0
+## err_redirect/1
 ```erlang
--spec err_redirect() -> stanza_error()
+-spec err_redirect(URI :: binary()) -> stanza_error()
 ```
 Creates 'redirect' stanza error.
+`URI` is a Uniform or Internationalized Resource Identifier, typically an XMPP IRI.
 
-## err_redirect/2
+## err_redirect/3
 ```erlang
 -spec err_redirect(
+         URI  :: binary(),
          Desc :: binary() | {io:format(), list()},
          Lang :: binary()) -> stanza_error()
 ```
 Creates 'redirect' stanza error.
+`URI` is a Uniform or Internationalized Resource Identifier, typically an XMPP IRI.
 
 ## err_registration_required/0
 ```erlang
@@ -1938,19 +2024,32 @@ Creates 'restricted-xml' stream error.
 ```
 Creates 'restricted-xml' stream error.
 
-## serr_see_other_host/0
+## serr_see_other_host/1
 ```erlang
--spec serr_see_other_host() -> stream_error()
+-spec serr_see_other_host(HostPort :: xmpp_host()) -> stream_error()
+```
+where `xmpp_host()` is defined as
+```erlang
+-type xmpp_host() :: binary() | inet:ip_address() |
+		     {binary() | inet:ip_address(), inet:port_number()}.
 ```
 Creates 'see-other-host' stream error.
+`HostPort` is a hostname or IP address (with or without a port).
 
-## serr_see_other_host/2
+## serr_see_other_host/3
 ```erlang
 -spec serr_see_other_host(
+         HostPort :: xmpp_host(),
          Desc :: binary() | {io:format(), list()},
          Lang :: binary()) -> stream_error()
 ```
+where `xmpp_host()` is defined as
+```erlang
+-type xmpp_host() :: binary() | inet:ip_address() |
+		     {binary() | inet:ip_address(), inet:port_number()}.
+```
 Creates 'see-other-host' stream error.
+`HostPort` is a hostname or IP address (with or without a port).
 
 ## serr_system_shutdown/0
 ```erlang

@@ -1,18 +1,18 @@
 %% Created automatically by xdata generator (xdata_codec.erl)
-%% Source: flex_offline.xdata
-%% Form type: http://jabber.org/protocol/offline
-%% Document: XEP-0013
+%% Source: http_upload.xdata
+%% Form type: urn:xmpp:http:upload:0, urn:xmpp:http:upload, eu:siacs:conversations:http:upload
+%% Document: XEP-0363
 
--module(flex_offline).
+-module(http_upload).
 
--export([encode/1, encode/2]).
+-export([encode/2, encode/3]).
 
 -export([decode/1, decode/2, format_error/1,
 	 io_format_error/1]).
 
 -include("xmpp_codec.hrl").
 
--include("flex_offline.hrl").
+-include("http_upload.hrl").
 
 -export_type([property/0, result/0, form/0]).
 
@@ -69,63 +69,58 @@ decode(Fs, Acc) ->
 		       Fs)
 	of
       false ->
-	  decode(Fs, Acc,
-		 <<"http://jabber.org/protocol/offline">>, []);
+	  decode(Fs, Acc, <<"urn:xmpp:http:upload:0">>, []);
       #xdata_field{values = [XMLNS]}
-	  when XMLNS ==
-		 <<"http://jabber.org/protocol/offline">> ->
+	  when XMLNS == <<"urn:xmpp:http:upload:0">>;
+	       XMLNS == <<"urn:xmpp:http:upload">>;
+	       XMLNS == <<"eu:siacs:conversations:http:upload">> ->
 	  decode(Fs, Acc, XMLNS, []);
       _ ->
 	  erlang:error({?MODULE,
-			{form_type_mismatch,
-			 <<"http://jabber.org/protocol/offline">>}})
+			{form_type_mismatch, <<"urn:xmpp:http:upload:0">>}})
     end.
 
-encode(Cfg) -> encode(Cfg, <<"en">>).
+encode(Cfg, XMLNS) -> encode(Cfg, XMLNS, <<"en">>).
 
-encode(List, Lang) when is_list(List) ->
+encode(List, XMLNS, Lang) when is_list(List) ->
     Fs = [case Opt of
-	    {number_of_messages, Val} ->
-		[encode_number_of_messages(Val, Lang)];
-	    {number_of_messages, _, _} ->
-		erlang:error({badarg, Opt});
+	    {'max-file-size', Val} ->
+		['encode_max-file-size'(Val, Lang)];
+	    {'max-file-size', _, _} -> erlang:error({badarg, Opt});
 	    #xdata_field{} -> [Opt];
 	    _ -> []
 	  end
 	  || Opt <- List],
     FormType = #xdata_field{var = <<"FORM_TYPE">>,
-			    type = hidden,
-			    values =
-				[<<"http://jabber.org/protocol/offline">>]},
+			    type = hidden, values = [XMLNS]},
     [FormType | lists:flatten(Fs)].
 
-decode([#xdata_field{var = <<"number_of_messages">>,
+decode([#xdata_field{var = <<"max-file-size">>,
 		     values = [Value]}
 	| Fs],
        Acc, XMLNS, Required) ->
     try dec_int(Value, 0, infinity) of
       Result ->
-	  decode(Fs, [{number_of_messages, Result} | Acc], XMLNS,
+	  decode(Fs, [{'max-file-size', Result} | Acc], XMLNS,
 		 Required)
     catch
       _:_ ->
 	  erlang:error({?MODULE,
-			{bad_var_value, <<"number_of_messages">>, XMLNS}})
+			{bad_var_value, <<"max-file-size">>, XMLNS}})
     end;
-decode([#xdata_field{var = <<"number_of_messages">>,
+decode([#xdata_field{var = <<"max-file-size">>,
 		     values = []} =
 	    F
 	| Fs],
        Acc, XMLNS, Required) ->
-    decode([F#xdata_field{var = <<"number_of_messages">>,
+    decode([F#xdata_field{var = <<"max-file-size">>,
 			  values = [<<>>]}
 	    | Fs],
 	   Acc, XMLNS, Required);
-decode([#xdata_field{var = <<"number_of_messages">>}
-	| _],
-       _, XMLNS, _) ->
+decode([#xdata_field{var = <<"max-file-size">>} | _], _,
+       XMLNS, _) ->
     erlang:error({?MODULE,
-		  {too_many_values, <<"number_of_messages">>, XMLNS}});
+		  {too_many_values, <<"max-file-size">>, XMLNS}});
 decode([#xdata_field{var = Var} | Fs], Acc, XMLNS,
        Required) ->
     if Var /= <<"FORM_TYPE">> ->
@@ -134,14 +129,13 @@ decode([#xdata_field{var = Var} | Fs], Acc, XMLNS,
     end;
 decode([], Acc, _, []) -> Acc.
 
-encode_number_of_messages(Value, Lang) ->
+'encode_max-file-size'(Value, Lang) ->
     Values = case Value of
 	       undefined -> [];
 	       Value -> [enc_int(Value)]
 	     end,
     Opts = [],
-    #xdata_field{var = <<"number_of_messages">>,
-		 values = Values, required = false, type = 'text-single',
-		 options = Opts, desc = <<>>,
-		 label =
-		     xmpp_tr:tr(Lang, <<"Number of Offline Messages">>)}.
+    #xdata_field{var = <<"max-file-size">>, values = Values,
+		 required = false, type = 'text-single', options = Opts,
+		 desc = <<>>,
+		 label = xmpp_tr:tr(Lang, <<"Maximum file size">>)}.
