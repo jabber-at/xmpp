@@ -1,12 +1,6 @@
-erlang-p1-xmpp (1:1.2.2-0.1) unstable; urgency=medium
+erlang-p1-xmpp (1:1.2.2-1.1) unstable; urgency=medium
 
   * New upstream version 1.2.2
-
- -- Mathias Ertl <mati@jabber.at>  Mon, 27 Aug 2018 10:54:39 +0200
-
-erlang-p1-xmpp (1:1.2.1-1.1) unstable; urgency=medium
-
-  * New upstream version 1.2.1
   * Added debian/upstream/metadata
   * Switched to debhelper 11
   * Add missing XSBC-Orig-Maintainer field in debian/control
