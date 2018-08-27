@@ -1,3 +1,9 @@
+# Version 1.2.2
+
+* Updating fast_xml to version 1.1.32.
+* Fix crash when trying to encode xmlcdata
+* Add missing files to hex package
+
 # Version 1.2.1
 
 * Updating p1_utils to version 1.0.12.
