@@ -1,3 +1,9 @@
+erlang-p1-xmpp (1:1.2.5-0.1) unstable; urgency=medium
+
+  * New upstream version 1.2.5
+
+ -- Mathias Ertl <mati@jabber.at>  Mon, 01 Oct 2018 19:54:42 +0200
+
 erlang-p1-xmpp (1:1.2.2-1.1) unstable; urgency=medium
 
   * New upstream version 1.2.2
