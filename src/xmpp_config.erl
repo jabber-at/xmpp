@@ -1,9 +1,5 @@
 %%%-------------------------------------------------------------------
 %%% @author Evgeny Khramtsov <ekhramtsov@process-one.net>
-%%% @doc
-%%%
-%%% @end
-%%% Created : 18 Nov 2016 by Evgeny Khramtsov <ekhramtsov@process-one.net>
 %%%
 %%%
 %%% Copyright (C) 2002-2018 ProcessOne, SARL. All Rights Reserved.
@@ -21,23 +17,22 @@
 %%% limitations under the License.
 %%%
 %%%-------------------------------------------------------------------
+-module(xmpp_config).
 
-{application, xmpp,
- [{description,  "Erlang/Elixir XMPP parsing and serialization library"},
-  {vsn,          "1.2.5"},
-  {modules,      []},
-  {registered,   []},
-  {applications, [kernel, stdlib]},
-  {mod,          {xmpp, []}},
-  {env,          []},
+%% API
+-export([debug/1, fqdn/1]).
 
-  %% hex.pm packaging:
-  {files, ["src/", "specs/", "asn1/", "include/", "c_src/jid.c", "c_src/xmpp_uri.c", "c_src/xmpp_lang.c", "rebar.config", "rebar.config.script", "README.md", "LICENSE.txt"]},
-  {licenses, ["Apache 2.0"]},
-  {maintainers, ["ProcessOne"]},
-  {links, [{"Github", "https://github.com/processone/xmpp"}]}]}.
+%%%===================================================================
+%%% API
+%%%===================================================================
+-spec fqdn(any()) -> {ok, [binary()]}.
+fqdn(_) ->
+    {ok, []}.
 
-%% Local Variables:
-%% mode: erlang
-%% End:
-%% vim: set filetype=erlang tabstop=8:
+-spec debug(any()) -> {ok, boolean()}.
+debug(_) ->
+    {ok, false}.
+
+%%%===================================================================
+%%% Internal functions
+%%%===================================================================

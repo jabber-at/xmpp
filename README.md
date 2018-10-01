@@ -251,6 +251,7 @@ XMPP elements from the following documents are supported:
 - [XEP-0033](https://xmpp.org/extensions/xep-0033.html):  Extended Stanza Addressing
 - [XEP-0039](https://xmpp.org/extensions/xep-0039.html):  Statistics Gathering
 - [XEP-0045](https://xmpp.org/extensions/xep-0045.html):  Multi-User Chat
+- [XEP-0047](https://xmpp.org/extensions/xep-0047.html):  In-Band Bytestreams
 - [XEP-0048](https://xmpp.org/extensions/xep-0048.html):  Bookmarks
 - [XEP-0049](https://xmpp.org/extensions/xep-0049.html):  Private XML Storage
 - [XEP-0050](https://xmpp.org/extensions/xep-0050.html):  Ad-Hoc Commands
@@ -271,6 +272,7 @@ XMPP elements from the following documents are supported:
 - [XEP-0138](https://xmpp.org/extensions/xep-0138.html):  Stream Compression
 - [XEP-0153](https://xmpp.org/extensions/xep-0153.html):  vCard-Based Avatars
 - [XEP-0158](https://xmpp.org/extensions/xep-0158.html):  CAPTCHA Forms
+- [XEP-0166](https://xmpp.org/extensions/xep-0166.html):  Jingle
 - [XEP-0172](https://xmpp.org/extensions/xep-0172.html):  User Nickname
 - [XEP-0184](https://xmpp.org/extensions/xep-0184.html):  Message Delivery Receipts
 - [XEP-0191](https://xmpp.org/extensions/xep-0191.html):  Blocking Command
@@ -281,12 +283,17 @@ XMPP elements from the following documents are supported:
 - [XEP-0220](https://xmpp.org/extensions/xep-0220.html):  Server Dialback
 - [XEP-0221](https://xmpp.org/extensions/xep-0221.html):  Data Forms Media Element
 - [XEP-0231](https://xmpp.org/extensions/xep-0231.html):  Bits of Binary
+- [XEP-0234](https://xmpp.org/extensions/xep-0234.html):  Jingle File Transfer
 - [XEP-0249](https://xmpp.org/extensions/xep-0249.html):  Direct MUC Invitations
+- [XEP-0260](https://xmpp.org/extensions/xep-0260.html):  Jingle SOCKS5 Bytestreams Transport Method
+- [XEP-0261](https://xmpp.org/extensions/xep-0261.html):  Jingle In-Band Bytestreams Transport Method
 - [XEP-0264](https://xmpp.org/extensions/xep-0264.html):  Jingle Content Thumbnails
 - [XEP-0279](https://xmpp.org/extensions/xep-0279.html):  Server IP Check
 - [XEP-0280](https://xmpp.org/extensions/xep-0280.html):  Message Carbons
 - [XEP-0297](https://xmpp.org/extensions/xep-0297.html):  Stanza Forwarding
+- [XEP-0300](https://xmpp.org/extensions/xep-0300.html):  Use of Cryptographic Hash Functions in XMPP
 - [XEP-0313](https://xmpp.org/extensions/xep-0313.html):  Message Archive Management
+- [XEP-0319](https://xmpp.org/extensions/xep-0319.html):  Last User Interaction in Presence
 - [XEP-0334](https://xmpp.org/extensions/xep-0334.html):  Message Processing Hints
 - [XEP-0352](https://xmpp.org/extensions/xep-0352.html):  Client State Indication
 - [XEP-0355](https://xmpp.org/extensions/xep-0355.html):  Namespace Delegation
