@@ -43,7 +43,9 @@
 	 get_verify_result/1,
 	 close/1,
 	 pp/1,
-	 sockname/1, peername/1]).
+	 sockname/1,
+	 peername/1,
+	 send_ws_ping/1]).
 
 -include("xmpp.hrl").
 
@@ -62,7 +64,8 @@
                        socket            :: socket(),
 		       max_stanza_size   :: timeout(),
 		       xml_stream :: undefined | fxml_stream:xml_stream_state(),
-		       shaper = none :: none | p1_shaper:state()}).
+		       shaper = none :: none | p1_shaper:state(),
+		       sock_peer_name = none :: none | {endpoint(), endpoint()}}).
 
 -type socket_state() :: #socket_state{}.
 
@@ -90,6 +93,7 @@
 -spec new(sockmod(), socket(), [proplists:property()]) -> socket_state().
 new(SockMod, Socket, Opts) ->
     MaxStanzaSize = proplists:get_value(max_stanza_size, Opts, infinity),
+    SockPeer =  proplists:get_value(sock_peer_name, Opts, none),
     XMLStream = case get_owner(SockMod, Socket) of
 		    Pid when Pid == self() ->
 			fxml_stream:new(self(), MaxStanzaSize);
@@ -99,7 +103,8 @@ new(SockMod, Socket, Opts) ->
     #socket_state{sockmod = SockMod,
 		  socket = Socket,
 		  xml_stream = XMLStream,
-		  max_stanza_size = MaxStanzaSize}.
+		  max_stanza_size = MaxStanzaSize,
+		  sock_peer_name = SockPeer}.
 
 connect(Addr, Port, Opts) ->
     connect(Addr, Port, Opts, infinity, self()).
@@ -197,6 +202,13 @@ send_trailer(#socket_state{xml_stream = undefined} = SocketData) ->
 send_trailer(SocketData) ->
     send(SocketData, <<"</stream:stream>">>).
 
+-spec send_ws_ping(socket_state()) -> ok | {error, inet:posix()}.
+send_ws_ping(#socket_state{xml_stream = undefined}) ->
+    % we don't send cdata on xmlsockets
+    ok;
+send_ws_ping(SocketData) ->
+    send(SocketData, <<"\r\n\r\n">>).
+
 -spec send(socket_state(), iodata()) -> ok | {error, closed | inet:posix()}.
 send(#socket_state{sockmod = SockMod, socket = Socket} = SocketData, Data) ->
     ?dbg("(~s) Send XML on stream = ~p", [pp(SocketData), Data]),
@@ -210,8 +222,22 @@ send(#socket_state{sockmod = SockMod, socket = Socket} = SocketData, Data) ->
     end.
 
 -spec send_xml(socket_state(), stream_element()) -> ok | {error, any()}.
-send_xml(#socket_state{sockmod = SockMod, socket = Socket}, El) ->
+send_xml(#socket_state{sockmod = SockMod, socket = Socket} = SocketData, El) ->
+    ?dbg("(~s) Send XML on stream = ~p", [pp(SocketData),
+					  stringify_stream_element(El)]),
     SockMod:send_xml(Socket, El).
+
+stringify_stream_element({xmlstreamstart, Name, Attrs}) ->
+    fxml:element_to_header(#xmlel{name = Name, attrs = Attrs});
+stringify_stream_element({xmlstreamend, Name}) ->
+    <<"</",Name/binary,">">>;
+stringify_stream_element({xmlstreamelement, El}) ->
+    fxml:element_to_binary(El);
+stringify_stream_element({xmlstreamerror, Data}) ->
+    Err = iolist_to_binary(io_lib:format("~p", [Data])),
+    <<"!StreamError: ", Err/binary>>;
+stringify_stream_element({xmlstreamraw, Data}) ->
+    Data.
 
 recv(#socket_state{sockmod = SockMod, socket = Socket} = SocketData, Data) ->
     case SockMod of
@@ -288,18 +314,30 @@ close(#socket_state{sockmod = SockMod, socket = Socket}) ->
 
 -spec sockname(socket_state()) -> {ok, endpoint()} | {error, inet:posix()}.
 sockname(#socket_state{sockmod = SockMod,
-		       socket = Socket}) ->
-    case SockMod of
-      gen_tcp -> inet:sockname(Socket);
-      _ -> SockMod:sockname(Socket)
+		       socket = Socket,
+		       sock_peer_name = SockPeer}) ->
+    case SockPeer of
+	none ->
+	    case SockMod of
+		gen_tcp -> inet:sockname(Socket);
+		_ -> SockMod:sockname(Socket)
+	    end;
+	{SN, _} ->
+	    {ok, SN}
     end.
 
 -spec peername(socket_state()) -> {ok, endpoint()} | {error, inet:posix()}.
 peername(#socket_state{sockmod = SockMod,
-		       socket = Socket}) ->
-    case SockMod of
-      gen_tcp -> inet:peername(Socket);
-      _ -> SockMod:peername(Socket)
+		       socket = Socket,
+		       sock_peer_name = SockPeer}) ->
+    case SockPeer of
+	none ->
+	    case SockMod of
+		gen_tcp -> inet:peername(Socket);
+		_ -> SockMod:peername(Socket)
+	    end;
+	{_, PN} ->
+	    {ok, PN}
     end.
 
 activate(#socket_state{sockmod = SockMod, socket = Socket}) ->
@@ -329,6 +367,8 @@ parse(SocketData, Data) when Data == <<>>; Data == [] ->
 	    Err
     end;
 parse(SocketData, [El | Els]) when is_record(El, xmlel) ->
+    ?dbg("(~s) Received XML on stream = ~p", [pp(SocketData),
+					      fxml:element_to_binary(El)]),
     self() ! {'$gen_event', {xmlstreamelement, El}},
     parse(SocketData, Els);
 parse(SocketData, [El | Els]) when
@@ -336,6 +376,8 @@ parse(SocketData, [El | Els]) when
       element(1, El) == xmlstreamelement;
       element(1, El) == xmlstreamend;
       element(1, El) == xmlstreamerror ->
+    ?dbg("(~s) Received XML on stream = ~p", [pp(SocketData),
+					      stringify_stream_element(El)]),
     self() ! {'$gen_event', El},
     parse(SocketData, Els);
 parse(#socket_state{xml_stream = XMLStream,

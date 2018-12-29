@@ -1,3 +1,20 @@
+# Version 1.2.8
+
+* Improve building with rebar3 and hex packaging
+
+# Version 1.2.7
+
+* Add code required for proxy protocol support
+
+# Version 1.2.6
+
+* Updating fast_tls to version 1.0.26.
+* Add support for XEP-0048 and XEP-0411
+* Add logging of data transmited over xml sockets
+* Add functions for processing white space pings
+* Validate xml:lang values
+* Fix encoding of timestamp with negative TZ offsets
+
 # Version 1.2.5
 
 * Update packaging for hex
